@@ -1,0 +1,5 @@
+etc/burnstation
+usr/share/burnstation-client-2.0
+usr/bin
+var/spool/burnstation
+var/log/burnstation

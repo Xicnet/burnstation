@@ -1,0 +1,52 @@
+#!/usr/bin/make -f
+# debian/rules makefile for burnstation-client-2.0
+
+# Uncomment this to turn on verbose mode.
+export DH_VERBOSE=1
+
+build: build-stamp
+build-stamp:
+	dh_testdir
+	touch build-stamp
+
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp
+	dh_clean 
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k 
+	dh_installdirs
+	dh_install
+	find debian/burnstation-client-2.0 -name .svn | xargs -r rm -r
+
+# Build architecture-independent files here.
+binary-indep: build install
+	dh_testdir
+	dh_testroot
+	dh_installdebconf	
+	dh_installdocs -X.svn
+	dh_installexamples
+	dh_installman
+	dh_installcron
+	dh_installchangelogs CHANGELOG
+	chmod u=rwx,g=rwx,o=rwx $(CURDIR)/debian/burnstation-client-2.0/var/spool/burnstation
+	chmod u=rwx,g=rwx,o=rwx $(CURDIR)/debian/burnstation-client-2.0/var/log/burnstation
+	dh_link
+	dh_compress
+	dh_fixperms -X/var
+	dh_installdeb
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+	rm -f build-stamp
+	rm -fr $(CURDIR)/debian/burnstation-client-2.0
+
+# Build architecture-dependent files here.
+binary-arch:
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install

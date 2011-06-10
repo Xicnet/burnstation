@@ -1,0 +1,231 @@
+
+
+*****************************************************************
+
+ !! PLEASE READ !! :: These instructions were written at the
+                      very beginning of this project, so they
+                      are _OLD_ and focus and very hand-made
+                      installation and/or for non-Debian systems.
+
+                      We keep it around just in case.
+
+*****************************************************************
+
+
+
+CLIENT-SIDE BURNSTATION INSTALLATION
+====================================
+
+++++++++++++++++++++++++++++++++++++++++++++++++++
+Table of contents
+--------------------------------------------------
+
+I. Base system installation and configuration
+II. Install additional required dependencies
+III. Configuration
+IV. Running the Burn Station client:
+
+++++++++++++++++++++++++++++++++++++++++++++++++++
+
+I. Base system installation and configuration
+---------------------------------------------
+
+1) download the Debian CD image (http://cdimage.debian.org/pub/weekly/i386/)
+2) install the OS
+3) secure your system
+	
+4) configure soundcard and CD-R
+. make sure permissions for all users are granted to read/write sound & mixer device.
+. it should look like this:
+
+# ls -l /dev/dsp0
+crw-rw-rw-  1 root audio 14, 3 2004-03-27 20:01 /dev/dsp0
+
+# ls -l /dev/mixer0
+crw-rw-rw-  1 root audio 14, 0 2004-03-27 20:01 /dev/mixer0
+	
+if it the last "rw-" flags are set to something different like "---"
+you should do:
+
+	chmod 666 /dev/dsp0
+	chmod 666 /dev/mixer0
+
+5) if you have not done so, re-configure cdrecord to run in SUID mode
+(this will let non-root users use the CD burner)
+
+6) configure joystick and load modules forever:
+. modconf (in joystick module add (+) adi for logitech rumblepad for example)
+	
+7) create a user for the BurnStation
+. issue the following command:
+	
+# useradd burn -G cdrom,audio
+  (this creates the "burn" user and adds him to
+  the "cdrom" and "sound" groups)
+
+# passwd
+  (will prompt for a password)
+	
+8) configure /etc/X11/gdm/gdm.conf to have the box autologin
+as the burn user (without password) as default:
+
+AutomaticLoginEnable=true  		    	    
+AutomaticLogin=burn
+
+9) create the spool directory, where temporary files will reside at burn time:
+NOTE: they will be deleted when burn is finished
+
+# mkdir /var/spool/burnstation
+
+9.b) set the proper permissions to the spool directory
+
+# chown burn.root /var/spool/burnstation
+# chmod 755 /var/spool/burnstation
+
+10) copy the bin/burnstation script to your /usr/local/bin to make it wide-system run-able:
+
+# cp bin/burnstation /usr/local/bin/
+
+II. Install additional required dependencies
+--------------------------------------------
+
+* General packages
+
+smbclient - a LanManager-like simple client for Unix
+xmms - Versatile X audio player that looks like Winamp
+cdrecord - command line CD writing tool
+mkisofs - Creates ISO-9660 CD-ROM filesystem images
+vorbis-tools - provides oggdec, used for decoding the audio files
+
+* Python packages
+
+python2.3-mysqldb - A Python interface for MySQL (depends on libmysqlclient12)
+python-pyvorbis - A Python interface to the Ogg Vorbis library
+python2.3-xmms - Python interface to XMMS (Python 2.3 version)
+python-pyogg - A Python interface to the Ogg library
+
+* Non-debian packages
+
+wxPython > 2.5 - wxWindows Cross-platform C++ GUI toolkit (wxWidgets python bindings)
+. refer to INSTALL.wxPython file in this same directory for directions on how to do it
+
+
+III. Configuration
+------------------
+
+--------------
+A) SYSTEM SIDE
+--------------
+
+NOTE: at this point the server and client should be connected and configured to work
+on the same network
+
+0) check the burnstation.conf file, if you installed the burnstation software through
+a Debian package, it should be located at /etc/burnstation/burnstation.conf
+
+- set the [database] access information
+- set the [path] information to locate the media contents
+- set at least the 'burnDevice' parameter inside the [burning] section
+- if you are using a joystick, be sure to specify the 'joyType' inside the [extra] section
+
+1) check if shared media directory is being served by server:
+	
+# smbclient -L //burnstation
+# Password:
+  (no password, this shared directory should be public)
+	
+. now you will be logged at the media dir prompt, so try to list its contents:
+
+# ls -l
+	
+If all the above procedure worked, you can now set the system to automount the media dir on boot.
+
+2) create the mount point for the shared media directory:
+
+	mkdir /usr/local/media
+
+3) edit fs tab with your favorite editor and add the following line at the end of /etc/fstab:
+	
+	//burnstation/media /usr/local/media smbfs default,password= 0 0
+
+4) mount the shared media dir as set in the /etc/fstab:
+
+	mount -a								
+
+-------------------
+B) BURNSTATION SIDE
+-------------------
+
+1) check CD-R drive speed and set it in the /etc/burnstation/burnstation.conf file
+
+	burnSpeed = 24
+	
+
+* (typical) Burnstation directories:
+
+/usr/local/burnstation - where the program lives, here is all python code, and the Main.py
+/usr/local/media - where all the contents live
+/var/www/webspace/burnstation.local - where HTML webpages for the infopanel are served
+/var/spool/burnstation - temporary/spool directory for holding necessary media to burn
+/var/log/burnstation - logs directory *** be sure to have a look there when there are problems
+
+IV. Running the Burn Station client:
+------------------------------------
+
+1) you should login into the X using user: burn
+2) open a terminal and execute the burnstation command:
+
+	# burnstation.sh
+	(note that you should have copied it to a global bin dir as
+	explained in section I item 10)
+
+before you execute that command, you will like to do the following in another terminal:
+
+	# tail -f /var/log/burnstation/*
+
+so that you see what's going on while starting the burnstation, to find out problems,
+or just by curiosity (the logging level is quite HIGH at the moment, sorry)
+-----------------------------------------------------------------------
+  
+
+
+APPENDIX A :: THINGS TO CHECK IF SOMETHING FAILS 
+================================================
+
+. settings in /etc/burnstation/burnstation.conf
+. smb running in server and mounted locally (as in installation chapter III step A)
+. dhcp running in server providing: 192.168.19.x IP addresses to clients
+. xmms running as the same user in client (you can try playing audio by hand in xmms)
+. user running the burnstation has permissions to write into the /var/log/burnstation directory
+. user running the burnstation belongs to group audio (if you want to hear something) and cdrom (if you want to burn ;)
+
+FAQ
+
+Q: Can I use the burnstation and be connected to the internet at the same time?
+
+A: Yes, however it's a bit tricky. You should have two different networks configured in
+your box. One for the burnstation (net 192.168.19.0/24) and any other which lets you
+connect to the internet. So the point is to setup a "virtual network interface".
+By issuing the following command you will configure your box to be on the same
+network as the burnstation server:
+
+	# ifconfig eth0:0 192.168.19.14
+
+Now you should also configure your box to use the burnstation server as DNS
+in order to serve you the backend (netjuke) web interface as the "InfoPanels" for
+the burnstation client (wxPython) interface.
+So add the following line at the beggining of your client's /etc/resolv.conf:
+
+nameserver 192.168.19.1
+
+and after saving it, try the following:
+
+# ping burnstation.local
+PING burnstation.local (192.168.19.1): 56 data bytes
+64 bytes from 192.168.19.1: icmp_seq=0 ttl=64 time=0.1 ms
+
+if the ping does not work it means your client box is not resolving correctly the names
+into IP addresses.
+
+FIXME :: add info on how to do it without nameserver, just IP based
+

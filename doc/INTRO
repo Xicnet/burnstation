@@ -1,0 +1,120 @@
+
+BURN STATION - Net culture hits the streets!
+
+What is this?
+
+BURN STATION is an open source and non-profit initiative involving the new
+means
+of distribution through the Internet. Our main objective is to link a public
+that is familiar with the electronic music and -but not necessarily- with the
+tools, radios and labels available on the net.
+
+BURN STATION brings net culture, net music and net radio down to the streets,
+converting P2P and net distribution into a F2F (Face to Face) system.
+
+We invite net labels, net radios, artists and independent media producers to
+participate in this project by providing the works they'd like to distribute
+plus the information and/or extra material that they deem important (details
+about your work's background, philosophy and copyright policies, if you're a
+label or distributor).
+
+The final purpose is that the public can select, edit and burn their own
+compilations in data or audio format, all within a legal context and in public
+spaces. All the contents are distributed under the original licenses used by
+each artist/producer.
+
+The BURN STATION beta release was released on the 2nd of september during
+Werkleitz Biennale in Halle (Germany), titled 'Common Property'.
+
+www.werkleitz.de/events/biennale2004
+
+Check the website for more information:
+www.platoniq.net/burnstation
+
+
+Software
+
+The BURN STATION project is based on the software by the same name, developed
+by
+Platoniq and Rama with the support of the F30km/s Foundation and
+Medien.KUNSTLABOR (Graz). The software allows the storage and management of the
+database and the distribution and publishing of audio and soon video and text
+files.
+
+If you're interested in collaborating on the software development, please visit
+www.burnstation.org
+
+Services
+
+BURN STATION will also serve as a public self-service publishing station for
+various mobile projects, dealing with interventions bridging media space and
+public space. BURN STATION brings net-culture to the streets!
+
+Mobile Unit
+
+The mobile unit version, set up in a van, is ready to go on tour. BURN STATION
+converts itself into a mobile self-service of distribution set up in parks,
+festivals, gas stations, parkings and other sub-urban spaces. People are
+invited
+to bring their CD-r's, listen, edit and burn their own compilations for FREE
+(as in free beer).
+
+Actions and live FM and net radio broadcasts are set up around the mobile unit.
+
+Technical description
+
+The BURN STATION software consists of two parts:
+
+1. Server side
+
+The server interface for managing contents is absolutely web based, which means
+you can control it from any browser running on a box connected to the BURN
+STATION Network. It connects to the database held on the server itself and
+provides the content information to the web-clients accessing the server
+contents management or back end (Netjuke for the moment) and also serves the
+clients requesting the contents information to display on the 'Info
+Panels'.
+
+- Works as a DHCP server for the BURN STATION clients to auto configure the
+network.
+
+- Works as a local DNS (name server) for the BURN STATION network.
+
+- Holds a shared media directory which the clients mount locally.
+
+- Holds the back end interface and the SQL server (for the moment only MySQL is
+supported).
+
+- Holds the media database with all the information about the contents.
+
+2.Client Side
+
+The client interface was coded in wxPython, which are python bindings to
+wxWidgets, an open-source toolkit for developing GUIs. Both python and wxPython
+are multi-platform, which means they should also run in non-GNU/Linux systems.
+However it was not tested, and the code was not considered or either developed
+for other platforms than GNU/Linux. If you'd like to run the client on another
+type of platform someone -or yourself- should port it.
+
+- Runs the BURN STATION client interface (wxPython code).
+
+- Mounts locally the shared media directory from the server.
+
+- Copies from server to local hard drive (spool dir) and decompresses the music
+when audio burn mode is selected and converts to stereo 16-bit 44.1KHz wave
+files to burn as music audio-CD.
+
+- Creates the ISO image locally taking data from the server, for burning as
+data
+mode.
+
+The BURN STATION's Content Management System is based on a hacked version of
+Netjuke (www.netjuke.org), a piece of software published under GPL, which is
+the
+most complete and developed web/database system for managing huge media
+collections we've found by the time of writing this software.
+
+Thanks for reading and now enjoy your listening and take some music with you!
+
+The BURN STATION crew
+

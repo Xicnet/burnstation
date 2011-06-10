@@ -1,0 +1,179 @@
+
+NOTES ON USING 'burnstation'
+===============================================================
+
+The following notes explain a couple of things you need to know
+when running and using the burnstation software.
+
+1. RUNNING THE CLIENT
+2. JOYPAD CONFIGURATION
+3. PUBLISHING CONTENTS
+
+-----------------------------------------------------------------------------------
+1. RUNNING THE CLIENT
+=====================
+
+You have two options (modes) for running the client: normal and loop modes.
+Just type one of the following commands on a shell:
+
+For 'normal' mode:
+
+ # burnstation
+
+'normal' mode runs the application just as any other application,
+which means it will start and after you quit it, it will close normally
+and not start again.
+
+For 'loop' mode:
+
+ # burnstation loop
+
+'loop' mode runs the application in an infinite loop, which means every time
+you quit it, it will automatically start again immediately. It will do that
+forever unless you *kill* the process, normally from a shell (terminal)
+with the command:
+
+ # killall burnstation
+
+NOTE: it is important that you *REALLY KILL* the process if it is running
+and you want to re-start it at some point. If you run the 'burnstation'
+command again when it is already running, you will end up having multiple
+instances of the program, which is something you DO NOT want and will lead
+to problems while using it.
+
+How to run the 'burnstation' command depends on how you've installed
+the software in your system. Both are explained below:
+
+A. Debian packages:
+
+The debian package for the burnstation client will install the 'burnstation'
+executable inside /usr/bin which is normally part of your environment's PATH
+variable, therefore you can just type the 'burnstation' command in a shell or
+create an icon on your desktop.
+
+B. SVN (subversion) or tarball installations on non-Debian systems:
+
+Depending on where you've checked out the burnstation client copy, or
+un-tar'ed the .tar.gz file, you will find it within the burnstation-client-2.0/bin
+directory. Example:
+
+/home/you/burnstation/burnstation-client-2.0/bin/burnstation
+
+You can just type the complete path to run the software, or even better,
+create a symlink from it to your /usr/local/bin (make sure this path is
+included within your PATH environment variable).
+The following command will do it:
+
+ln -s /home/you/burnstation/burnstation-client-2.0/bin/burnstation /usr/local/bin
+
+Now you can just type: 'burnstation' on a shell and it should start. If you get
+something like 'command not found' it's very likely that you don't have
+/usr/local/bin on your path.
+The following command will add it there:
+
+PATH=$PATH:/usr/local/bin
+
+Now try again, and it should work.
+
+
+-----------------------------------------------------------------------------------
+2. JOYPAD CONFIGURATION
+=======================
+
+Normally every linux-supported joypad controller will work here.
+You can test yours with the 'joystick' tool, which a Debian package,
+so:
+
+  sudo apt-get install joystick
+
+will install it for you. Once you got it you can use the following command
+to test it:
+
+  jstest /dev/input/js0
+
+Press some buttons and move the sticks from your pad to see if it works.
+If you see some movement on your screen, then you are pretty fine!
+
+Now you can learn which values correspond to each button on your joypad
+to map them with each action to control the burnstation software:
+
+ A. Run the command:
+
+      burnstation2-joypad_test
+
+    ... and press each button to see their values.
+
+ B. Edit /usr/share/burnstation-server-2.0/JoyConf.py which has the buttons to actions
+    mapping.
+
+      You can find an example at the end of that file which reads 'YourModel'.
+      Just replace the numbers there with the values you've found using burnstation2-joypad_test.
+
+ C. Finally, edit /etc/burnstation/burnstation2.conf and adapt the 'joyType' under
+    the [extra] section to reflect the name of your joypad mapping.
+
+IMPORTANT WARNING: some joypads do not have 'cursors' (position arrows to go
+                   up, down, left and right) and sometimes they can mess your
+                   burnstation up and it will not run.
+                   You can try to set 'cursors = 0' under the [joystick] section
+                   of your /etc/burnstation/burnstation2.conf to disable them.
+
+
+-----------------------------------------------------------------------------------
+3. PUBLISHING CONTENTS
+======================
+
+The publishing system to add new contents into the burnstation database
+is still experimental.
+
+There are a few requirements for your files in order to publish them.
+
+ They MUST:
+
+ * Be already encoded into OGG/Vorbis having the .ogg extension (not .OGG!).
+ * Be already tagged with 'Title' and 'Artist' tags at least.
+ * Be already copied to your hard drive (into somewhere like /home/burn/ ).
+
+IMPORTANT: you are encouraged to BACKUP your database completely
+           before trying to import any contents, so that you can
+           easily revert back in case of trouble, errors or mistakes.
+
+You can do such backup by dumping the whole database with a command like this:
+
+ # mysqldump -u burnstation_user -p burnstation_database > /home/burn/burnstation-db-backup.sql
+
+.. where burnstation_user and burnstation_database should
+   match your MySQL user and database for your installation.
+
+Check MySQL documentation in case of doubts at that point.
+
+Once your files are ready to be published follow these steps
+to import them into your burnstation database:
+
+ * Start the burnstation software.
+ * Press 'r' key to register as a new user or 'l' key to login (if you already have a user)
+   NOTE: after you enter your password, press [enter] twice to continue.
+ * After you register or login yourself successfully, the music browser will switch from
+   showing the burnstation database contents to your filesystem files and directories.
+ * Search for the directory where you have the files to be published.
+ * Now you have two options:
+   1 - Add the whole directory where the files live by stepping on its name and pressing
+       the 'add to playlist' key (it is 'v' at the time of this writing).
+   2 - Go inside the directory, browse and add each file, one by one, pressing the
+       'add to playlist' key. You can still add complete directories including all files
+       contained in them too, by pressing the 'add to playlist' key by stepping over the
+       desired directory name.
+ * Once your 'playlist' (actually your 'publish' list ;) is ready, press the 'p' key
+   to publish them.
+ * You will be asked for a 'Label' name. If the files you are published do not belong
+   to any 'Label' just leave it blank, otherwise fill it in.
+ * Press [enter] and wait until you are brought back to the burnstation database.
+ * Browse the contents and you should find your recently added contents :)
+ * Try to play some of them, add some to your playlist and burn a CD.
+ * If all worked fine, you are set! Congratulations and thanks for your interest!
+ 
+NOTE: the publishing process will copy the source files inside a directory named as your user
+      under your media directory (normally /usr/local/media). So, for instance, if the user
+      you registered is called 'you', then the music will be located at:
+      /usr/local/media/you
+

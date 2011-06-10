@@ -1,0 +1,8 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+import sys
+sys.path.append('/usr/share/burnstation-client-2.0')
+from DBcheck import validate_media_files
+
+validate_media_files()

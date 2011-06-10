@@ -1,0 +1,13 @@
+*.py		/usr/share/burnstation-client-2.0
+bin		/usr
+conf/*		/etc/burnstation
+conf/*		/usr/share/doc/burnstation-client-2.0/examples
+data		/usr/share/burnstation-client-2.0
+bgplayer	/usr/share/burnstation-client-2.0
+daemon		/usr/share/burnstation-client-2.0
+plugins		/usr/share/burnstation-client-2.0
+publish		/usr/share/burnstation-client-2.0
+scripts		/usr/share/burnstation-client-2.0
+test		/usr/share/burnstation-client-2.0
+tools		/usr/share/burnstation-client-2.0
+upgrade		/usr/share/burnstation-client-2.0

@@ -1,0 +1,25 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+import sys
+from mutagen.oggvorbis import OggVorbis
+
+def saveLabel(file, label):
+    '''read file and save label tag'''
+    af = OggVorbis(file)
+
+    print "Tags before labelizer:"
+    print af
+    print
+
+    af['label'] = label
+    print af.save()
+    print "Tags after labelizer:"
+    print af
+
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        file  = sys.argv[1]
+        label = sys.argv[2]
+
+        saveLabel(file, label)

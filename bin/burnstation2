@@ -1,0 +1,33 @@
+#!/bin/bash
+#
+# burnstation startup script
+#
+
+CONFIG=/etc/burnstation/burnstation2.conf
+BSHOME=`grep home $CONFIG | awk -F"=" '{print $2}'`
+LOGS=`grep logs $CONFIG | awk -F"=" '{print $2}'`
+MYPID=`cat $LOGS/PID 2>/dev/null`
+
+kill -9 $MYPID 2>/dev/null
+
+#----------------------------------
+function loop() {
+	# start the app in looped mode, which means start it again when it exits
+	while /bin/true
+	do
+		python $BSHOME/Main.py
+	done
+}
+#----------------------------------
+function normal() {
+	python $BSHOME/Main.py
+}
+#----------------------------------
+
+if [ "$1" == "loop"  ];
+then
+	loop
+else
+	normal
+fi
+

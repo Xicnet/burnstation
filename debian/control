@@ -1,0 +1,24 @@
+Source: burnstation-client-2.0
+Section: net
+Priority: optional
+Maintainer: rama <rama@burnstation.org>
+Build-Depends: debhelper (>= 4.0.0)
+Standards-Version: 3.6.1
+
+Package: burnstation-client-2.0
+Architecture: all
+Depends: python-mysqldb, python-pyogg | python-ogg, python-pyvorbis, python-mutagen, python-id3, python-dbus | python2.4-dbus, python-mutagen, cdrecord, mkisofs, vorbis-tools, sox, eject, mpg123, hal, pmount, cdda2wav, python-pygame, python-gst0.10, gstreamer0.10-alsa, gstreamer0.10-esd, gstreamer0.10-gnomevfs, gstreamer0.10-plugins-base, gstreamer0.10-plugins-base-apps, gstreamer0.10-plugins-good, gstreamer0.10-x
+Description: free music distribution system
+ Burn Station is a complete system for free music distribution.
+ In the near future it will also feature video and text.
+ .
+ Be sure to read the documentation to make this system work,
+ otherwise you might be uselessly disappointed.
+ .
+ This package provides the Burn Station client.
+ You might need to install burnstation-server package on the same
+ machine where you plan to run the client or optionally in another
+ one which will act as your Burn Station server.
+ .
+ Check http://burnstation.org for further information
+

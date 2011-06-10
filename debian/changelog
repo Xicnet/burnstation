@@ -1,0 +1,296 @@
+burnstation-client-2.0 (2.0.1-1ubuntu1) lucid; urgency=low
+
+  * added USB storage (pendrive) support to copy media.
+  * renaned HOME env var to BSHOME from startup script
+    as it messed pulseaudio up while starting BS daemon.
+
+ -- rama <rama@burnstation.org>  Tue, 28 Sep 2010 01:22:09 -0300
+
+burnstation-client-2.0 (2.0rc3-5) gutsy; urgency=low
+
+  * added map for 'asia' joypads
+
+ -- rama <rama@burnstation.org>  Tue, 29 Apr 2008 22:31:56 -0300
+
+burnstation-client-2.0 (2.0rc3-4) gutsy; urgency=low
+
+  * replaced depend on python-gst with python-gst0.10 for client debian package.
+  * made burn.py executable, otherwise burning fails with error "decoder log index error"
+
+ -- rama <rama@burnstation.org>  Sun, 20 Apr 2008 21:54:25 -0300
+
+burnstation-client-2.0 (2.0rc3-3) gutsy; urgency=low
+
+  * fixed burnstation2-validate_media script which
+    failed to run due to missing paths.
+
+ -- rama <rama@burnstation.org>  Wed, 09 Apr 2008 18:58:55 -0300
+
+burnstation-client-2.0 (2.0rc3-2) gutsy; urgency=low
+
+  * fixed bug which did not permit the client to start
+    as it was issueing an action on uncreated sprites. 
+
+ -- rama <rama@burnstation.org>  Mon, 07 Apr 2008 14:57:43 -0300
+
+burnstation-client-2.0 (2.0rc3-1) gutsy; urgency=low
+
+  * removed unneeded dependencies on some gstreamer packages.
+
+ -- rama <rama@burnstation.org>  Mon, 07 Apr 2008 13:48:20 -0300
+
+burnstation-client-2.0 (2.0rc2-1) unstable; urgency=low
+
+  * removed unneeded wx imports from py code
+
+ -- rama <rama@burnstation.org>  Mon, 07 Apr 2008 13:15:22 -0300
+
+burnstation-client-2.0 (2.0rc1-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- rama <rama@burnstation.org>  Sat, 29 Mar 2008 00:28:51 -0300
+
+burnstation-client (1.2-2) feisty; urgency=low
+
+  * fixed max playlist length and size in default config.
+
+ -- rama <rama@burnstation.org>  Tue, 13 Nov 2007 15:20:58 +0100
+
+burnstation-client (1.2-1) feisty; urgency=low
+
+  * new upstream release.
+
+ -- rama <rama@burnstation.org>  Sun, 11 Nov 2007 02:45:23 +0100
+
+burnstation-client (1.1beta1-2) unstable; urgency=low
+
+  * Many improvements to publishing system.
+  * "Burn!" button works again.
+  * Fixed some character encoding issues.
+  * Modified ogg encoder in my_dir2ogg to encode at 192kbps.
+
+ --  <rama@burnstation.org>  Mon, 26 Mar 2007 01:31:57 -0300
+
+burnstation-client (1.1beta1-1) unstable; urgency=low
+
+  * New upstream release
+  * Improved GUI (gazer)
+  * New publishing system
+  * Complete changelog coming soon..
+
+ --  <rama@burnstation.org>  Fri,  9 Mar 2007 04:38:08 -0300
+
+burnstation-client (1.0rc1-3) unstable; urgency=low
+
+    * burnstation-client: brought packages from burnstation-server which belong here
+    * burnstation-client/NOTES: added note about installing cdrecord SUID
+    * burnstation-client/INSTALL: fixed some stuff and added note about being
+      outdated for tarball release
+    * burnstation-client/images.py: container for image icons shown on the tree
+    * burnstation-client/README: cosmetic stuff
+    * burnstation-client/Main.py: enabled double click to open tree items and
+      included icons in front of each tree item (only at label level)
+
+
+ --  <rama@xicnet.com>  Sat,  3 Jun 2006 19:22:55 +0200
+
+burnstation-client (1.0rc1-2) unstable; urgency=low
+
+  * moved into this packages some dependancies which where listed in
+  burnstation-server.
+  * removed dependancy on smbclient, as it is just optional
+  * changed dependancy on python-id3lib to be that one or python-id3 as it
+  changed its name recently in debian unstable
+
+ --  <rama@xicnet.com>  Mon,  1 May 2006 22:01:06 +0200
+
+burnstation-client (1.0rc1-1) unstable; urgency=low
+
+  * renamed package name from burnstation to burnstation-client
+  * updated version number to 1.0rc1 ! now we are almost ready to release it
+  * changed dependancy on wxpython2.6.0 to be that one or python-wxgtk2.6
+
+ --  <rama@xicnet.com>  Thu, 20 Apr 2006 11:52:04 +0200
+
+burnstation (1.0beta6-6) unstable; urgency=low
+
+  * added OnPlayRandom() to play songs randomly from the whole bs database
+  * fixed some major bugs which where breaking execution under ubuntu
+
+ --  <rama@xicnet.com>  Mon, 17 Apr 2006 19:57:38 +0200
+
+burnstation (1.0beta6-5) unstable; urgency=low
+
+  * added OnPlayPlaylist() feature to play full playlist 
+
+ --  <rama@xicnet.com>  Tue, 11 Apr 2006 12:23:08 +0200
+
+burnstation (1.0beta6-4) unstable; urgency=low
+
+  * fixed bug after burning the station was freezing.
+  * several undocumented changes. to be updated according to svn diff.
+
+ -- rama <rama@xicnet.com>  Wed, 22 Mar 2006 16:27:42 +0100
+
+burnstation (1.0beta6-3) unstable; urgency=low
+
+  * moved FullReset() declaration from BurnNow.py to gv.py to make it
+    available for both BurnNow.py (invoked when burn is finished) and Main.py
+    if RESET button is clicked
+
+ --  <rama@xicnet.com>  Thu,  2 Feb 2006 18:24:38 +0100
+
+burnstation (1.0beta6-2) unstable; urgency=low
+
+  * fixed bug in infotrack generation
+  * changelog probably incomplete
+
+ --  <rama@xicnet.com>  Tue, 31 Jan 2006 01:58:15 +0100
+
+burnstation (1.0beta6-1) unstable; urgency=low
+
+  * BurnNow.py: changed some look and formatting at the isosrc
+  * tools/testiso.py: used to test the changes on the isosrc
+  * isosrc/logo.png: replaced by Platoniq's version
+  * isosrc/back.png: replaced by Platoniq's version
+  * isosrc/index.part0: changed according to Platoniq
+  * isosrc/index.part1: changed according to Platoniq and fixed link to be
+    http://db.burnstation.org instead of http://burnstation.org
+  * included bin/burnstation-updatesize
+  * included bin/burnstation-flagrecover
+  * included bin/burnstation-dbfixes to apply some extra fixes to the database
+  * included bin/burnstation-chkplsize which will check the size of the
+    playlist you specify
+  * included tools/sql/soulseek_path as a fix to correct paths for Soulseek
+    Records on the database
+  * fixed Makefile to install bin/* in /usr/bin
+  * fixed debian/postinst to reflect the proper webUrl in favour of new
+    apache autoconfig
+  * class'ified LoadConfig out of gv.py to have a central module to load
+    config from burnstation.conf
+  * did major fixes to update_size.py, now it read central config file
+  * python'ized flagrecover and renamed to bin/burnstation-flagrecover
+  * fixed bug invoking data burn (reported by sux)
+
+ --  <rama@xicnet.com>  Wed, 18 Jan 2006 21:57:39 +0100
+
+burnstation (1.0beta5-7) unstable; urgency=low
+
+  * changed debian/rules to do dh_clean -k (otherwise was getting genchanges error)
+
+ --  <rama@xicnet.com>  Sat,  3 Dec 2005 13:07:51 +0100
+
+burnstation (1.0beta5-6) unstable; urgency=low
+
+  * did several cleanups, not many major changes 
+
+ --  <rama@xicnet.com>  Fri,  2 Dec 2005 18:54:48 +0100
+
+burnstation (1.0beta5-5) unstable; urgency=low
+
+  * changed dependancy back to wxpython2.6.0 as wxpython2.6 does not exist for
+    Sarge. This way we keep working for Sarge and Sid
+
+ --  <rama@xicnet.com>  Fri, 25 Nov 2005 10:45:53 +0100
+
+burnstation (1.0beta5-4) unstable; urgency=low
+
+  * changed dependancy on wxpython2.6.0 to wxpython (>= 2.6) 
+
+ --  <rama@xicnet.com>  Fri, 25 Nov 2005 10:37:12 +0100
+
+burnstation (1.0beta5-3) unstable; urgency=low
+
+  * rebuilding debian package as it seems to have collapsed with previous
+    version 
+  * improved PopBurn class
+  * fixed some GUI aspect issues
+  * fixed oversize-validation upon requesting burn
+
+ --  <rama@xicnet.com>  Thu, 24 Nov 2005 23:25:35 +0100
+
+burnstation (1.0beta5-2) unstable; urgency=low
+
+  * added OK / CANCEL / CLOSE buttons on each window to be controlled by mouse-clicks
+
+ --  <rama@xicnet.com>  Thu, 24 Nov 2005 10:20:57 +0100
+
+burnstation (1.0beta5-1) unstable; urgency=low
+
+  * fixed burn menu to display Ok and Cancel buttons.
+  * replaced ocurrencies of self.HadFocus with self.GV.HadFocus to have more
+    widely available.
+  * now we use self.GV.playlistToBurnID in a more global context
+
+ --  <rama@xicnet.com>  Wed, 23 Nov 2005 10:22:05 +0100
+
+burnstation (1.0beta4-9) unstable; urgency=low
+
+  * fixed XmmsPlay() to validate existence of the file before trying playback
+    This avoids the annoying xmms file open dialog to popup, but does not
+    avoid it if you do very fast switching between tracks.
+    however: CLOSES #2
+  * removed smbclient from dependencies
+  * fixed decoding process, now it will convert mono files to stereo
+    CLOSES #4
+  * fixed unicode problem during burning process which was breaking burn
+    CLOSES #1
+
+ --  <rama@xicnet.com>  Mon, 21 Nov 2005 17:02:37 +0100
+
+burnstation (1.0beta4-8) unstable; urgency=low
+
+  * added sox to the list of dependencies: required for resampling before burn
+  * changed some config defaults in burnstation.conf
+
+ -- rama <rama@xicnet.com>  Tue, 12 Jul 2005 22:25:24 -0300
+
+burnstation (1.0beta4-7) unstable; urgency=low
+
+  * Fixed isosrc parameter in burnstation.conf to not have surrounding ''
+  as this was failing to render a useable variable parsing the config file
+
+ -- rama <rama@xicnet.com>  Fri,  8 Jul 2005 18:19:02 -0300
+
+burnstation (1.0beta4-6) unstable; urgency=low
+
+  * Added code for GreenAsia joypad, so added 'joyType' parameter in [extra]
+    section at /etc/burnstation/burnstation.conf
+  * Disabled the horrible MondrianIcon (to be replaced by burnstation.ico
+    inside img/)
+  * Fixed some problems with comments after each configuration directive at
+    burnstation.conf
+
+ -- rama <rama@xicnet.com>  Fri,  8 Jul 2005 17:35:15 -0300
+
+burnstation (1.0beta4-5) unstable; urgency=low
+
+  * Added interface control buttons (add, play, stop, burn, etc..) again
+
+ -- rama <rama@xicnet.com>  Fri,  8 Jul 2005 15:07:35 -0300
+
+burnstation (1.0beta4-4) unstable; urgency=low
+
+  * Splitted configuration into /etc/burnstation/burnstation.conf 
+
+ -- rama <rama@xicnet.com>  Tue,  7 Jun 2005 00:31:24 +0200
+
+burnstation (1.0beta4-3) unstable; urgency=low
+
+  * Added vorbis-tools to dependencies list.
+
+ -- rama <rama@xicnet.com>  Mon,  6 Jun 2005 23:07:55 +0200
+
+burnstation (1.0beta4-2) unstable; urgency=low
+
+  * Including list of dependencies.
+
+ -- rama <rama@xicnet.com>  Mon,  6 Jun 2005 20:11:17 +0200
+
+burnstation (1.0beta4-1) unstable; urgency=low
+
+  * Initial release.
+
+ -- rama <rama@xicnet.com>  Fri, 27 May 2005 03:39:31 +0200
+

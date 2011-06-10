@@ -1,0 +1,22 @@
+
+IMPORTING MUSIC INTO THE 'burnstation' DATABASE
+===============================================
+
+1) Be sure to have your OGG files properly tagged.
+   Required tags are: 'title' and 'artist'.
+   If possible, you should also include a 'license' tag
+   where you state under which license each track is published.
+
+2) Put all your OGG files and directories inside a base directory
+   with the name of your net-label. If you are not publishing within
+   any label, just call the directory with your artist name.
+   Try to avoid spaces and special characters for the dir name.
+
+3) Copy your base directory into your burnstation music repository,
+   typically /usr/local/media/music
+
+4) Change to directory pygameGUI/publish
+   and execute: burnstation-publisher.py PATH_TO_YOUR_BASEDIR LABEL_NAME
+   Example: burnstation-publisher.py /usr/local/media/music/Costellam Costellam
+
+5) Done! Run burnstation and enjoy!

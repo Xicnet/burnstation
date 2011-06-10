@@ -1,0 +1,56 @@
+
+INSTALLING 'burnstation 2.0'
+============================
+
+* Add the Debian/Ubuntu packages repository to your /etc/apt/sources.list:
+
+    deb http://burnstation.org/debian/ sarge main
+
+* Update your packages database and install the corresponding packages:
+
+    sudo apt-get update
+    sudo apt-get install burnstation-client-2.0 burnstation-server-2.0 burnstation-images-2.0
+
+* Check the config file and give it the right settings.
+  Most important are:
+
+  [database] section to connect to your MySQL database.
+             The user, password and database will be created
+             from those values when you run the burnstation
+             for the first time.
+
+             You will be asked for your MySQL super-user name and password.
+
+  [paths] section: choose your musicPath, where the music will be stored.
+
+  [burning] section: choose your burnDevice, which you can find by running
+            the following command:
+
+            cdrecord -scanbus
+
+* Create the media directory according to your [paths] musicPath setting
+  and give some permissions:
+
+    sudo mkdir /usr/local/media
+    sudo chmod 777 /usr/local/media (yes, a bit nasty, tune it at your wish)
+
+* Download the music:
+
+    burnstation2-getnewcontent
+
+  You have to wait until all the music gets downloaded (unless you want to have
+  an incomplete/partial collection of music).
+
+  This step will take time, as there are about 12GB of music and growing.
+
+* Validate the downloaded tracks, which will enable them for displaying on
+  the burnstation interface, otherwise it will be empty:
+
+    burnstation2-validate_media
+
+* Start the burnstation:
+
+    burnstation2
+
+* Enjoy!
+

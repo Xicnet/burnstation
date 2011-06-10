@@ -1,0 +1,2 @@
+?package(burnstation):needs="X11" section="Apps/Misc" \
+  title="burnstation" command="/usr/bin/burnstation"

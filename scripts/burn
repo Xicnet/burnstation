@@ -1,0 +1,1183 @@
+#!/usr/bin/python
+
+# burn
+#
+# Copyright (C) 2003-4 Gaetano Paolone <bigpaul at hacknight.org>. All Rights Reserved.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+#
+# This software is maintained by bigpaul and is available at:
+#    http://www.bigpaul.org/burn/
+#
+
+
+## ----------------------------------------------------------------------
+
+# python burn version
+version = "0.4.3"
+
+#Disclaimer
+"""
+I DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL I
+BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY
+DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+SOFTWARE.
+"""
+
+from optparse import OptionParser, OptionGroup
+from os.path import *
+from os import system, remove, walk, listdir
+from re import match, search, compile
+import sys, ConfigParser, commands, glob, string
+import os
+import statvfs
+import eyeD3
+import mad
+import ao
+import ogg.vorbis
+import gettext
+import popen2, pwd
+import tty, termios, time, fnmatch
+
+sys.path.append(os.getcwd())
+from ErrorsHandler import *
+
+logfile = 'burner.log'
+logger.InitAll(logfile, '')
+
+sys.stdout.save = False
+
+import  LoadConfig
+bsconfig = LoadConfig.LoadConfig()
+
+
+gettext.bindtextdomain('burn', '/usr/share/locale/it/LC_MESSAGES/')
+gettext.textdomain('burn')
+_ = gettext.gettext
+
+
+config = ConfigParser.ConfigParser()
+#CONFIGURATION FILE LOCATION **********************************
+#All of them are used. Not existing files ignored. Later item overrides former.
+config.read(['burn.conf', os.path.join(os.environ['HOME'],'.burnrc')])
+
+external_decod = 0
+cdrecord = config.get('executables','cdrecord')
+cdrdao = config.get('executables','cdrdao')
+mkisofs = config.get('executables','mkisofs')
+external_decoding = config.get('general','external_decoding')
+if external_decoding  in ('y', 'ye', 'yes', 'Y', 'YE', 'YES', 'Yes'):
+	external_decod = 1
+	ogg_decoder = config.get('executables','ogg_decoder')
+	mp3_decoder = config.get('executables','mp3_decoder')
+	ogg_decoder_option = config.get('executables','ogg_decoder_option')
+	mp3_decoder_option = config.get('executables','mp3_decoder_option')
+#-----------------------------------------------------------------
+
+def ask_ok(prompt, default='none', complaint=_('Please answer [y]es or [n]o.')):
+	"""If invoked, returns true if user answers yes to the 
+		question and false if he answers no.
+		A default result (True/False) may be given. 
+		default patch by Jochen Schulz <jrschulz at web.de>"""
+	while True:
+		ok = raw_input(prompt)
+		if ok in ('y', 'ye', 'yes', 'Y', 'YE', 'YES', 'Yes'): return True
+		if ok in ('n', 'no', 'nop', 'nope', 'No', 'NO', 'nO'): return False
+		if ok == '' and default in (True, False): return default
+		print complaint
+
+
+def compute_audio_duration(audio_file):
+	"""Compute music seconds from an audio list."""
+
+	seconds = 0
+	if exists(audio_file) and isfile(audio_file):
+		info = FileInfo(audio_file)
+		seconds = seconds + int(info.total_time)
+		return seconds
+	else:
+		return -1
+
+def compute_duration(seconds):
+	"""Compute duration returns mm:ss ."""
+	if seconds > 3600:
+		duration = '%d:%02d:%02d' % (int(seconds / 3600),
+			int(seconds / 60) % 60,
+			int(seconds) % 60)
+	elif seconds > 60:
+		duration = '%d:%02d' % (int(seconds / 60),
+			int(seconds) % 60)
+	else:
+		duration ='0:%02d' % int(seconds)
+	return duration
+
+def du(dirname, path_du):      #is like du. goes through dirname
+			#and subdirs and append every file size to path_du
+	"""Goes deeply through path in order to calculate path's disk usage."""
+	for root, dirs, files in walk(dirname):
+		for i in files:
+			if exists(realpath(join(root, i))):
+				path_du = path_du + getsize(join(root, i))
+				#       print path_du, join(root, i)
+	if options.follow_symlink: #only if user puts -l on command line
+		for d in dirs:
+			print join(root, d)
+			#os.walk does not follow symlink directories. Next line will allow it.
+			if islink(join(root, d)):
+				path_du = path_du + du(realpath(join(root,d)), path_du)
+	return path_du
+
+def check_main_option(opt):
+	"""Checks first argument."""
+	if opt == "-D" or opt == "--data-cd":
+		return 1
+	if opt == "-I" or opt == "--iso-cd":
+		return 2
+	if opt == "-C" or opt == "--copy-cd":
+		return 3
+	if opt == "-A" or opt == "--audio-cd":
+		return 4
+	else:
+		print _('Invalid syntax. First argument should be a main mode. See \'burn -h\' for more info.')
+		sys.exit()
+
+def check_media_empty():
+	"""check if cdrom is empty using cdrdao"""
+	# giuppi's function 
+	device = config.get('CD-writer','device')
+	driver = config.get('CD-writer','driver')
+	media_raw_info=popen2.popen2('%s disk-info --device %s --driver %s 2>/dev/null'%(cdrdao,device,driver))
+	lines=media_raw_info[0].readlines()
+	for line in lines:
+		if line.startswith('CD-R empty'):
+			if line.split(':')[1].strip()=='yes':
+				return True
+			return False
+	return False
+
+def err(why):		#file not found 
+	"""Prints an error using why as argument."""
+	print _('Error. '), why
+
+def err_nf(dir_file):
+	"""Not found error message."""
+	print _('Error. '), dir_file, _(' not found.')
+
+def get_list_from_file(path):
+	"""extract a list of paths from a file, should work with m3u playlists too"""
+	return [line for line in\
+		map(string.strip, open(path).readlines())\
+		if isfile(line)]
+
+def get_media_capacity():
+	"""get media capacity using cdrdao"""
+	# giuppi's function 
+	device = config.get('CD-writer','device')
+	driver = config.get('CD-writer','driver')
+	media_raw_info=popen2.popen2('%s disk-info --device %s --driver %s 2>/dev/null'%(cdrdao,device,driver))
+	lines=media_raw_info[0].readlines()
+	for line in lines:
+		if line.startswith('Total Capacity'):
+			if line.split(':')[1].strip()=='n/a':
+				return None
+			return line.split()[6].split('/')[0]
+	return None
+
+def getch():
+	fd = sys.stdin.fileno()
+	oldterm = termios.tcgetattr(fd)
+	tty.setraw(fd)
+	ch = sys.stdin.read(1)
+	termios.tcsetattr(fd, termios.TCSADRAIN, oldterm)
+	return ch
+
+def prog_intro():
+	"""Prints program header..."""
+	if config.get('general','ask_root') == 'yes':
+		if not pwd.getpwuid(os.geteuid())[0] == "root":
+			if not ask_ok(_('You are not superuser (root). Do you still want to continue? (Y/n) '), True):
+				sys.exit()
+	print _('Burn v.'), version, _('  Written and copyrights by Gaetano Paolone.')
+	print _('Burn until recorded, now!')
+	print _('This software comes with absolutely no warranty! Use at your own risk!')
+	print _('Burn is free software. See software updates at http://www.bigpaul.org/burn/')
+	if options.audio_cd:
+		print
+		print _('Audio-CD...')
+		print
+		print _('Audio file processing. Please wait...')
+		print
+	if options.data_cd:
+		print
+		print _('Data-CD...')
+		print
+		print _('Checking files, directories and disk usage. Please wait...')
+		print
+	if options.copy_cd:
+		print
+		print _('Copy-CD...')
+		print
+		cdrom = CDROM()
+		cdrom.compute_media_size()
+	if options.iso_cd:
+		print
+		print _('Iso-CD...')
+		print
+
+def show_examples (option, opt, value, parser):
+	"""Show examples for quick startup"""
+
+	print "# burn -D -p /etc/"
+	print _('   Creates a CD/DVD with /etc/ contents. (you will find files and directories contained in /etc in CD\'s root)')
+	print "# burn -D -p /home/bigpaul/video/summer_2003/spain.tar.gz"
+	print _('   Creates a CD/DVD with spain.tar.gz in CD\'s root')
+	print "# burn -D -r /etc/"
+	print _('   Creates a CD/DVD containing the whole /etc/ directory. (-r preserves path)')
+	print "# burn -D -c /mail_2003 /home/bigpaul/Mail -p /boot/vmli*"
+	print _('   Creates a CD/DVD containing the whole /home/bigpaul/Mail renamed into /mail_2003. (-c changes path name). This command also adds in CD\'s root every vmli* file in /boot/ directory')
+	print "# burn -I -n image.iso"
+	print _('   Burns image.iso')
+	print "# burn -C"
+	print _('   Copy CDs (disk at once).')
+	print "# burn -A -a *.wav"
+	print _('   Creates an Audio CD. Tracks come from wav files')
+	print "# burn -A -a *.mp3"
+	print _('   Creates an Audio CD. Tracks come from mp3 files')
+	print "# burn -A -a *.ogg"
+	print _('   Creates an Audio CD. Tracks come from Ogg Vorbis files')
+	print "# burn -A -a *.mp3 file.ogg track01.wav"
+	print _('   Creates an Audio CD. Tracks come from .wav, .ogg, .mp3 files')
+	
+	sys.exit()
+
+def varargs (option, opt, value, parser):
+	"""Callback function to manage more than one argument (or shell expansion)"""
+	assert value is None
+	step = 0
+	value = []
+	rargs = parser.rargs
+	while rargs:
+		step = step + 1
+		arg = rargs[0]
+		if ((arg[:2] == "--" and len(arg) > 2) or (arg[:1] == "-" and len(arg) > 1 and arg[1] != "-")):
+			if step == 1:
+				print option, _(' is an option that takes one or more arguments. So you can\'t put '), arg, _(' after it')
+				sys.exit()
+			else:
+				break
+		else:
+			value.append(arg)
+			del rargs[0]
+	setattr(parser.values, option.dest, value)
+
+	# Function Declare STOP
+	#----------------------------------------------------------------
+	
+	
+	#----------------------------------------------------------------
+	# Class Declare START
+
+class ISO:
+	"ISO class"
+	path_o = []
+	mkisofs_line = ''
+	windows = config.get('ISO','windows_read')
+	tempdir = config.get('ISO','tempdir')
+	image_name = config.get('ISO','image') 
+	mount_dir = config.get('ISO','mount_dir')
+	dest = normpath(tempdir + image_name)
+	def mkisofs_line_append(self, addenda):		
+		"""append string (addenda) to mkisofs_line"""
+		self.mkisofs_line = self.mkisofs_line + addenda
+	def mkisofs_line_view(self):				
+		"""view command in mkisofs_line"""
+		return self.mkisofs_line
+	def create(self):
+		"""exec command in mkisofs_line"""
+		print _('Creating temporary image: '), self.dest
+		pbar=progressBar(0,100,30)
+		stderr=popen2.popen3(self.mkisofs_line)[2]
+		progress=0
+		while 1:
+			line=stderr.readline()
+			if not line:
+				pbar.updateAmount(100)
+				print pbar, "\r",
+				sys.stdout.flush()
+				return
+			if "done, estimate finish" in line:
+				progress = int(float(line.split()[0][:-1]))
+				pbar.updateAmount(progress)
+				print pbar, "\r",
+				sys.stdout.flush()
+	def destroy(self):					
+		"""exec command in mkisofs_line"""
+		remove(self.dest)
+	def ask_mount(self, image):
+		"""asks if user wants to mount image"""
+		if ask_ok(_('Do you want to see image\'s contents before proceeding? (Y/n) '), True):
+			self.mount(image)
+			
+	def freespace(self):
+		"""return free disk space"""
+		s = os.statvfs(self.tempdir)
+		return (long(s[statvfs.F_BAVAIL]) * long(s[statvfs.F_BSIZE]))/1048576
+	
+	def mount(self, image):					
+		"""mount image in self.mount_dir"""
+		if exists(self.mount_dir) and isdir(self.mount_dir):
+			mount_loop = "mount -o loop " + image + " " + self.mount_dir
+			if system(mount_loop):
+				print _('Unable to mount '), image, _('. Please check if you have permissions to mount it on '), self.mount_dir
+				sys.exit()
+			self.ask_after_mount(self.mount_dir)
+		else:
+			err(self.mount_dir + _(' is not valid as a mount point'))
+			sys.exit()
+		umount_loop = "umount " + self.mount_dir
+		system(umount_loop)
+
+	def ask_after_mount(self, dirname):
+		"""Choose what to do with the mounted image..."""
+		prompt = _('\n\nPlease choose:\n\n1. Print every file with path\n2. Print directory tree structure\n3. Ok, finished... Let\'s burn\n> ')
+		ok = raw_input(prompt)
+		if ok in ('1'): #option num. 1 ---> every file
+			print
+			for root, dirs, files in walk(dirname):
+				for i in files:
+					print join(root, i)
+			self.ask_after_mount(dirname) #return True
+		if ok in ('2'): #option num. 2 ---> tree structure
+			print
+			for root, dirs, files in walk(dirname):
+				for d in dirs:
+					print join(root, d)
+			self.ask_after_mount(dirname)
+		if ok in ('3'): #option num. 3 ---> done
+			return True
+	
+	def ask_multisession(self):
+		"""Asks if user wants to add stuff to a multisession CD or if he wants to
+		create a new multisession CD from scratch."""
+		prompt = _('\n\nPlease choose:\n\n1. Create new multisession CD from a blank media\n2. Append data to an existant multisession CD\n> ')
+		ok = raw_input(prompt)
+		if ok in ('1'): #option num. 1 new multisession
+			return 1
+		if ok in ('2'): #option num. 2 already multisession
+			return 2
+	
+	def ask_remove(self):				
+		"""asks to remove image"""
+		print
+		print self.dest, _(' is the image file created...')
+		if ask_ok(_('Do you want me to remove it? (y/N) '), False):
+			print _('Removing '), iso.dest, "..."
+			remove(self.dest)
+			return True
+		else:
+			return False
+		
+	def first_ask_remove(self):
+		"""asks to remove image at the very beginning"""
+		print
+		print _('Warning. there is already a temporary image file named '), self.dest, "."
+		if ask_ok(_('Do you want me to remove it? (y/N) '), False):
+			print _('Removing '), iso.dest, "..."
+			remove(self.dest)
+			return True
+		else:
+			return False
+
+
+class CDROM:
+	"CDROM class"
+	
+	cdrecord_line = ''
+	cdrdao=config.get('executables','cdrdao')
+	speed = bsconfig.burnSpeed
+	device = config.get('CD-writer','device')
+	source_device = config.get('CD-reader','device')
+	driver = config.get('CD-writer','driver')
+	source_driver = config.get('CD-reader','driver')
+	burnfree = config.get('CD-writer','burnfree')
+	
+	def compute_media_size(self):
+		if config.get('Media','media-check') == 'yes':
+			empty = check_media_empty()
+			if not empty:
+				if not options.multisession:
+					print _('Error. Please insert a blank CD/DVD.')
+					os.system('%s -eject dev=%s &>/dev/null'%(cdrecord,config.get('CD-writer','device')))
+					sys.exit()
+
+			self.size = get_media_capacity()
+			if not self.size:
+				print _("Error. unknown media capacity. Using configuration default.")
+				self.size = config.get('Media','size')
+		else:
+			self.size = config.get('Media','size')
+	
+	def cdrecord_line_append(self, addenda):		
+		"""appen string (addenda) to cdrecord_line"""
+		self.cdrecord_line = self.cdrecord_line + addenda
+	def cdrecord_simulate(self):				
+		"""simulate burning"""
+		self.cdrecord_line = self.cdrecord_line + '-dummy  '
+	def cdrecord_line_view(self):				
+		"""view command in cdrecord_line"""
+		return self.cdrecord_line
+	def size_compare(self, tobeburned, space_needed):
+		"""Checks free space for temporary files and CD oversize"""
+		free_disk_space = int(iso.freespace())
+		self.compute_media_size()
+		print
+		print _('To be burned: '), "\t\t\t", tobeburned/1048576, "Mb"
+		print _('Disk space needed: '), "\t\t", space_needed/1048576, "Mb"
+		print _('Media capacity: '), "\t\t", self.size, "Mb"
+		if mode != 2: #mode 2 is dao
+			print _('Free disk space: '), "\t\t", free_disk_space, "Mb"
+		if space_needed == 0:  
+			space_needed = tobeburned
+		if mode != 2:  #mode 2 is dao
+			if (space_needed/1048576) > free_disk_space:
+				if mode == 1: #Data
+					print _('You do not have enough free disk space') ," (",free_disk_space," Mb )", _('to create temporary image file '), "( ",tobeburned/1048576, " Mb )"
+				elif mode == 4: #Audio
+					print _('You do not have enough free disk space') ," (",free_disk_space," Mb )", _('to create temporary audio files '), "( ",tobeburned/1048576, " Mb )"
+				sys.exit()
+		if (tobeburned/1048576) > int(self.size):
+			if not ask_ok(_('It seems you are going to burn more than media\'s capacity.\nDo you still want to continue? (y/N) '), False):
+				sys.exit()
+		return True
+		
+	def line_create(self):
+		"""cdrecord line generation"""
+		self.cdrecord_line = ''
+		self.cdrecord_line_append(cdrecord + ' -v -pad ')
+		#check for dummy (simulate)
+		if options.simulate:
+			self.cdrecord_simulate()
+		#check for eject
+		if options.eject:
+			self.cdrecord_line_append('-eject ')
+		#check burning speed
+		if self.speed:
+			self.cdrecord_line_append('speed=' + self.speed + ' ')
+		else:
+			print _('no burning speed defined, using 2x')
+			self.cdrecord_line_append('speed=2' + ' ')
+		#check burn device
+		if self.device:
+			self.cdrecord_line_append('dev=' + self.device + ' ')
+		else:
+			print _('no device specified.')
+			sys.exit()
+		#for the ones who have buffer underrun protection
+		if self.burnfree:
+			self.cdrecord_line_append('driveropts=burnfree ')
+		#enable multisession
+		if options.multisession:
+			self.cdrecord_line_append('-multi ')
+		if options.data_cd or options.iso_cd:
+			self.cdrecord_line_append('-data ' + iso.dest)
+
+	def create(self):					
+		"""exec command in cdrecord_line"""
+		print
+		logger.info( 'Decoding finished' )
+		#logger.info( _('About to begin recording...') )
+		#getch()
+		print _('Please wait...')
+		#print self.cdrecord_line
+		system(self.cdrecord_line + " > /tmp/burn.out 2> /tmp/burn.err")
+
+	def double_dao_create(self, cdrdao_line):					
+		"""exec command in cdrdao_line if you have TWO unit (reader and writer)"""
+		print
+		print _('Place the source CD in the CD drive')
+		print _('and place a blank media in the recording unit.')
+		print _('Press a key to begin on-the-fly copy')
+		getch()
+		system(cdrdao_line)
+		#print cdrdao_line
+
+	def single_dao_create(self, cdrdao_line):					#exec command in cdrdao_line
+		"""exec command in cdrdao_line if you have only ONE unit (writer)"""
+		print
+		print _('Place source CD in the recording unit.')
+		print _('Press a key to begin reading...')
+		getch()
+		system(cdrdao_line)
+		#print cdrdao_line
+
+	def another_copy(self):					
+		"""burn image untill user says no"""
+		while ask_ok(_('Do you want to use this image to make another copy now? (y/N) '), False):
+			self.line_create()
+			self.create()
+
+class FileInfo:
+	"""Grab as much info as you can from the file given"""
+
+	def __init__(self, fullpath):
+		base, ext = os.path.splitext(fullpath)
+		#print "FFFF---- ", fullpath
+		#print ext
+		ext = string.lower(ext)
+		if ext == '.ogg':
+			af = OggInfo(fullpath)
+			self.__dict__.update(af.__dict__)
+			self.af=af
+		else:
+			tag = eyeD3.Tag();
+			tag.link(fullpath);
+			self.artist = tag.getArtist();
+			self.title = tag.getTitle()
+			self.album = tag.getAlbum()
+			af = mad.MadFile(fullpath)
+			self.total_time = af.total_time() / 1024
+			self.bitrate = af.bitrate() / 1000
+			self.af=af
+			#self.samplerate = info.samplerate
+			#self.mode = info.mode
+			#self.mode_extension = info.mode_extension
+		#    if hasattr(info, 'length'):
+		
+		self.duration = compute_duration(self.total_time)
+	def read(self):
+		return self.af.read()
+
+
+class OggInfo:
+	"""Extra information about an Ogg Vorbis file.
+	Uses ogg-python and vorbis-python from http://www.duke.edu/~ahc4/pyogg/.
+	Patch from Justin Erenkrantz <justin@erenkrantz.com>
+	"""
+	def __init__(self, name):
+		global oggSupport
+	
+	# Setup the defaults
+		self.valid = 0
+		self.total_time = 0
+		self.samplerate = 'unkown'
+		self.bitrate = 'unkown'
+		self.mode = ''
+		self.mode_extension = ''
+		self.title = ''
+		self.artist = ''
+		self.album = ''
+		self.year = ''
+		self.genre = ''
+		self.vendor = ''
+		self.track = ''
+		self.comment = ''
+		self.transcoded = ''
+	# Generic File Info
+		af = ogg.vorbis.VorbisFile(name)
+		vc = af.comment()
+		vi = af.info()
+		self.af=af
+
+	# According to the docs, -1 means the current bitstream
+		self.samplerate = vi.rate
+		self.total_time = af.time_total(-1)
+		self.bitrate = af.bitrate(-1) / 1000 
+		self.filesize = af.raw_total(-1)/1024/1024
+
+	# recognized_comments = ('Artist', 'Album', 'Title', 'Version',
+	#                        'Organization', 'Genre', 'Description',
+	#                        'Date', 'Location', 'Copyright', 'Vendor')
+		for key, val in vc.items():
+			if key == 'TITLE':
+				self.title = val
+			elif key == 'ARTIST':
+				self.artist = val
+			elif key == 'ALBUM':
+				self.album = val
+			elif key == 'DATE':
+				self.year = val
+			elif key == 'GENRE':
+				self.genre = val
+			elif key == 'VENDOR':
+				self.vendor = val
+			elif key == 'TRACKNUMBER':
+				self.track = val
+			elif key == 'COMMENT':
+				self.comment = val
+			elif key == 'TRANSCODED':
+				self.transcoded = val
+		self.valid = 1
+	def read(self):
+		return self.af.read()
+
+class progressBar:
+	def __init__(self, minValue = 0, maxValue = 10, totalWidth=12):
+		self.progBar = "[]"   # This holds the progress bar string
+		self.min = minValue
+		self.max = maxValue
+		self.span = maxValue - minValue
+		self.width = totalWidth
+		self.amount = 0       # When amount == max, we are 100% done 
+		self.updateAmount(0)  # Build progress bar string
+		
+	def updateAmount(self, newAmount = 0):
+		if newAmount < self.min: newAmount = self.min
+		if newAmount > self.max: newAmount = self.max
+		self.amount = newAmount
+
+		# Figure out the new percent done, round to an integer
+		diffFromMin = float(self.amount - self.min)
+		percentDone = (diffFromMin / float(self.span)) * 100.0
+		percentDone = round(percentDone)
+		percentDone = int(percentDone)
+
+		# Figure out how many hash bars the percentage should be
+		allFull = self.width - 2
+		numHashes = (percentDone / 100.0) * allFull
+		numHashes = int(round(numHashes))
+
+		# build a progress bar with hashes and spaces
+		self.progBar = "[" + '='*numHashes + ' '*(allFull-numHashes) + "]"
+
+		# figure out where to put the percentage, roughly centered
+		percentPlace = (len(self.progBar) / 2) - len(str(percentDone)) 
+		percentString = str(percentDone) + "%"
+
+		# slice the percentage into the bar
+		self.progBar = self.progBar[0:percentPlace] + percentString + self.progBar[percentPlace+len(percentString):]
+	def __str__(self):
+		return str(self.progBar)
+
+class Swirl:
+	def __init__(self):
+		self.shape = ('\\', '|', '/', '-')
+		self.lenght = len(self.shape)
+		self.counter = 0
+		
+	def rotate(self):
+		if (self.counter >= self.lenght):
+			self.counter = 0
+		print self.shape[self.counter], "\r",
+		self.counter = self.counter + 1
+		
+	# Class Declare STOP
+	#----------------------------------------------------------------
+
+
+
+def main():
+	global options, iso, cdrom, mode
+	#----------------------------------------------------------------
+	# Option declare START
+	usage ="""%prog -MODE [general_option] [mode_option] ...
+
+For quick start you can get common examples with:
+
+burn -e
+"""
+	parser = OptionParser(usage=usage)
+
+	parser.add_option("-e", "--examples", action="callback", callback=show_examples, dest="examples",
+		help=_('show examples for quick startup'))
+
+	#Modes
+	mode = OptionGroup(parser, _('Main burn MODES'),
+		_('The _have_ to be the first argument after program name'))
+	mode.add_option("-D", "--data-cd", action="store_true", dest="data_cd",
+		help=_('creates a Data CD/DVD.'))
+	mode.add_option("-I", "--iso-cd", action="store_true", dest="iso_cd",
+		help=_('creates a CD/DVD from ISO.'))
+	mode.add_option("-C", "--copy-cd", action="store_true", dest="copy_cd",
+		help=_('copy CD/DVD.'))
+	mode.add_option("-A", "--audio-cd", action="store_true", dest="audio_cd",
+		help=_('creates an Audio CD from .wav, .mp3 and .ogg files.'))
+
+	#General options
+	general_option = OptionGroup(parser, "General options",
+			_('These options could be used for every burn mode unless stated otherwise'))
+
+	general_option.add_option("-s", "--simulate", action="store_true", dest="simulate",
+				help=_('This option will perform a burn simulation.'))
+	general_option.add_option("-j", "--eject", action="store_true", dest="eject",
+				help=_('This option will eject disk when burn process is over.'))
+
+	#DATA-CD Options
+	data_cd = OptionGroup(parser, _('Data CD Mode (-D) options'),
+		_('Data CD: adds files and directories.'))
+	data_cd.add_option("-p", "--path",
+		action="callback", callback=varargs, dest="path", help=_('add file/s or path\'s content to CD-ROM/DVD\'s root. e.g.: -p /cvs/myproj/ <return>. In this example we will find CD-ROM/DVD\'s root filled with /cvs/myproj/ contents, but no /cvs/myproj/ will be created.'))
+	data_cd.add_option("-r", "--preserve-path",
+		action="callback", callback=varargs, dest="preserve_path", help=_('add file/s or path\'s content to CD-ROM/DVD preserving original path. e.g.: -r /cvs/myproj/ <return>. In this example we will find /cvs/myproj/ in CD-ROM/DVD\'s root.'))
+	data_cd.add_option("-x", "--exclude-path", 
+		#action="append", type="string", dest="exclude_path",
+		action="callback", callback=varargs, dest="exclude_path",
+		help=_('every file or directory matching this string will not be included.'))
+	data_cd.add_option("-c", "--change-path", action="append", 
+		nargs=2, type="string", dest="change_path", help=_('usage: -c <new_path> <old_path>. With this option, old_path will be named new_path in CD-ROM/DVD. e.g.: -c /my_home/2004_Jan/ /home/bigpaul/ <return>. Thus /home/bigpaul/ will be named  /my_home/2004_Jan/ in CD-ROM/DVD.'))
+	data_cd.add_option("-l", "--follow-symlink", action="store_true", dest="follow_symlink",
+		help=_('this option allows burn to follow symbolic link directories')) 
+	data_cd.add_option("-m", "--multisession", action="store_true", dest="multisession",
+		help=_('this option allows multisession CDs')) 
+
+
+	#ISO-CD Options
+	iso_cd = OptionGroup(parser, "ISO CD Mode (-I) options",
+		_('Creates a CD-ROM/DVD from an existing image.'))
+
+	iso_cd.add_option("-n", "--name", action="store", type="string", dest="iso_name", 
+		help=_('image name'))
+
+	#COPY-CD Options
+	copy_cd = OptionGroup(parser, _('Copy CD Mode (-C) options'),
+		_('If you have both a reader and a recording unit you can perform a copy on-the-fly. You can also copy a CD even if you only have the recording unit.'))
+
+	#AUDIO-CD Options
+	audio_cd = OptionGroup(parser, _('Audio CD Mode (-A) options'),
+		_('Audio CD is used to create an audio CD-ROM from .wav, .ogg and .mp3 files. You can can use -a option to perform an Audio CD from different source audio files.'))
+	audio_cd.add_option("-a", "--audio-file",
+		action="callback", callback=varargs, dest="general_audio_file_list", help=_('.wav, .mp3, .ogg file/s. Files must have extensions (no matter if they are upper or lowercase).'))
+	audio_cd.add_option("--audio-list",
+		action="store", type="string", dest="file_list", help=_('m3u playlist or file with one audio file per line.'))
+	audio_cd.add_option("--clear-audiotemp",
+		action="store_true", dest="clear_audio_temp", help=_('remove temporary audio files.'))
+
+	parser.add_option_group(mode)
+	parser.add_option_group(general_option)
+	parser.add_option_group(data_cd)
+	parser.add_option_group(iso_cd)
+	parser.add_option_group(copy_cd)
+	parser.add_option_group(audio_cd)
+	(options, args) = parser.parse_args()
+	
+	#----------------------------------------------------------------
+	# Function Declare START
+	
+	
+	
+	if len(sys.argv) > 1:
+			mode = check_main_option(sys.argv[1])
+	else:
+		prog_intro()
+		parser.print_help()
+		sys.exit()
+
+	if mode == 1: #DATA-CD
+		a=Swirl()
+		prog_intro()
+		iso = ISO()
+		cdrom = CDROM()
+		path = ''
+		path_preserved = ''
+		path_changed = ''
+		path_excluded = ''
+		msinfo_values = ''
+		size = 0
+		first_time_multisession = 0
+		# ----------------------
+		if options.path:
+			for x in options.path:
+				if exists(x):
+					#print "X= ", x
+					y = abspath(x)
+					#print "Y= ", y
+					path = path + '\'' + y + '\'' + ' '
+					if isfile(y):
+						size = size + getsize(y)
+					elif isdir(y):
+						size = size + du(y, 0)
+					else:
+						err(y + _(': no such file or directory.'))
+				else:
+					err_nf(x)
+		if options.preserve_path:
+			for x in options.preserve_path:
+				if exists(x):
+					y = abspath(x)
+					if isdir(y):
+						size = size + du(y, 0)
+					elif isfile(y):
+						size = size + getsize(y)
+					else:
+						
+						err(y + _(': no such file or directory.'))
+						sys.exit()
+					path_preserved = path_preserved + '\'' + y + '\'' + '=' + '\'' + y + '\'' + ' '
+				else:
+					err_nf(x)
+		if options.change_path:
+			for x in options.change_path:
+				#print "X1", x[1][:1]
+				if exists(x[1]):
+					y = abspath(x[1])
+					if isfile(y):
+						size = size + getsize(y)
+					elif isdir(y):
+						size = size + du(y, 0)
+					else:
+						err(y + _(': no such file or directory.'))
+						sys.exit()
+					path_changed = path_changed + '\'' + x[0] + '\'' + '=' + '\'' + y + '\'' + ' '
+				else:
+					err_nf(x[1])
+					print _('nothing will be done for'), x[1], "->", x[0]
+		if options.exclude_path:
+			testsize = size
+			for y in options.path:
+				if isdir(y):
+					for x in options.exclude_path:
+						for root, dirs, files in walk(y):
+							for i in files:
+								if fnmatch.fnmatch(i, x):
+									if exists(join(root,i)):
+										if isfile(join(root,i)):
+											size = size - getsize(join(root,i))
+											path_excluded = path_excluded + '-x ' + '\'' + join(root,i) + '\'' + ' '
+							for d in dirs:
+								if fnmatch.fnmatch(d, x):
+									if exists(join(root,d)):
+										size = size - du(join(root,d), 0)
+										path_excluded = path_excluded + '-x ' + '\'' + join(root,d) + '\'' + ' '
+			print
+			print _('Size without exclusions: '), "\t", testsize/1048576, "Mb"
+
+		#print "Pre= ", testsize/1048576 
+		#print "SSS= ", size/1048576 
+		global_path = path + path_preserved + path_changed
+		if global_path == '':
+			err(_('Nothing to be burned...'))
+			sys.exit()
+		cdrom.size_compare(size, size)
+		#mkisofs line generation
+		iso.mkisofs_line_append(mkisofs + ' -R ') #-quiet 
+		if exists(iso.tempdir):
+			iso.mkisofs_line_append('-o ' + iso.dest + '  ')
+		else:
+			err(_('Error: ') + iso.tempdir + _(' does not exist'))
+			sys.exit()
+		#check Joliet option to be added
+		if iso.windows == 'yes':
+			iso.mkisofs_line_append('-J -joliet-long ')
+		#check exclude files - directories
+		if path_excluded:
+			iso.mkisofs_line_append(path_excluded + ' ')
+		if options.multisession:
+			multisession_choose = iso.ask_multisession()
+			if multisession_choose == 2:
+				#ciao
+				print _('Place target CD in CD/DVD writer unit and press a key...')
+				getch()
+				print _('Please wait...')
+				msinfo = commands.getstatusoutput(cdrecord + ' -msinfo dev=' + cdrom.device + ' 2>/dev/null')
+				iso.mkisofs_line_append(' -C ' + msinfo[1] + ' -M ' + cdrom.device + ' ')
+			elif not multisession_choose == 1:
+				sys.exit()
+			else:
+				first_time_multisession = 1
+		iso.mkisofs_line_append('-graft-points ' + global_path)
+		cdrom.line_create()
+		#a = cdrom.cdrecord_line_view()
+		#print a
+		#b = iso.mkisofs_line_view()
+		#print b
+		if exists(iso.dest):
+			if not iso.first_ask_remove():
+				cdrom.another_copy()
+				sys.exit()
+		iso.create()
+		if first_time_multisession == 1:
+			iso.ask_mount(iso.dest)
+		cdrom.create()
+		if exists(iso.dest):
+			if not iso.ask_remove():
+				cdrom.another_copy()
+		sys.exit()
+	#------------------------------------------------------
+	# ISO-CD
+	if mode == 2:
+		prog_intro()
+		iso = ISO()
+		cdrom = CDROM()
+		if exists(options.iso_name):
+			if cdrom.size_compare(getsize(options.iso_name), 0):
+				print
+				iso.dest = options.iso_name
+				iso.ask_mount(options.iso_name)
+				cdrom.line_create()
+				cdrom.create()
+				if exists(iso.dest):
+					if not iso.ask_remove():
+						cdrom.another_copy()
+			else:
+				sys.exit()
+		else:
+			err_nf(options.iso_name)
+			sys.exit()
+		sys.exit()
+	#------------------------------------------------------
+	if mode == 3: #DAO
+		prog_intro()
+		cdrom = CDROM()
+		iso = ISO()
+		single_drive_mode = 0
+		if cdrom.device == cdrom.source_device or cdrom.source_device == '':
+			single_drive_mode = 1
+			#print single_drive_mode
+		cdrdao_line = cdrdao + ' '
+	
+		#if options.simulate:
+		#	cdrdao_line = cdrdao_line + "simulate "
+		if single_drive_mode == 1:
+			cdrdao_line = cdrdao_line + "copy "
+			if options.simulate:
+				cdrdao_line = cdrdao_line + "--simulate "
+			if options.eject:
+				cdrdao_line = cdrdao_line + "--eject "
+			cdrdao_line = cdrdao_line + "--datafile " + iso.dest + " --device " + cdrom.device + " "
+			if not cdrom.driver == '':
+				cdrdao_line = cdrdao_line + " --driver " + cdrom.driver + " "
+			cdrdao_line = cdrdao_line + " --speed " + cdrom.speed + " --fast-toc"
+			#print cdrdao_line
+			cdrom.single_dao_create(cdrdao_line)
+		else:
+			cdrdao_line = cdrdao_line + "copy "
+			if options.simulate:
+				cdrdao_line = cdrdao_line + "--simulate "
+			if options.eject:
+				cdrdao_line = cdrdao_line + "--eject "
+			cdrdao_line = cdrdao_line + "--device " + cdrom.device + " " 
+			if not cdrom.driver == '':
+				cdrdao_line = cdrdao_line + " --driver " + cdrom.driver + " "
+			cdrdao_line = cdrdao_line + "--source-device " + cdrom.source_device + " "
+			if not cdrom.source_driver == '':
+				cdrdao_line = cdrdao_line + "--source-driver " + cdrom.source_driver + " "
+			cdrdao_line = cdrdao_line + " --speed " + cdrom.speed + " --on-the-fly --fast-toc "
+			#print cdrdao_line
+			cdrom.double_dao_create(cdrdao_line)
+		sys.exit()
+	#------------------------------------------------------
+	if mode == 4: #AUDIO
+		prog_intro()
+		cdrom = CDROM()
+		iso = ISO()
+		audio_list = []
+		to_be_removed = []
+		old_temp_wavs = []
+		list = []
+		mp3_line = ''
+		tracks = ''
+		track_type = ''
+		size = 0
+		track_number = 0
+		track_number2 = 0
+		mp3_ogg_size = 0
+		ogg_seconds = 0
+		mp3_seconds = 0
+		counter = 1000
+		total_audio_time = 0
+
+
+		#61196 wav header????
+		#176400 kb 1 wav second comes from:
+		#44100 * 16 * 2bit / 8 = byte
+		
+		list_dir = listdir(iso.tempdir)
+		
+		if options.clear_audio_temp:
+			for x in list_dir:
+				if compile("^burn_1").search(x[:5], 0):
+					old_temp_wavs.append(normpath(iso.tempdir+x))
+			if old_temp_wavs:
+				print
+				for x in old_temp_wavs:
+					print _('removing '),x,"..."
+					remove(x)
+		if options.general_audio_file_list:
+			list = options.general_audio_file_list
+
+		if options.file_list:
+			list.extend(get_list_from_file(options.file_list))
+		
+		for i in list:
+			base, ext = os.path.splitext(i)
+			ext = string.lower(ext)
+			if ext == '.ogg' or ext == '.mp3':
+				mp3_ogg_size = mp3_ogg_size + (compute_audio_duration(i) * 176400)
+			if ext == '.wav':
+				size = size + getsize(i)
+			if ext != '.ogg' and ext != '.mp3' and ext != '.wav':
+				print i, _(': not a regular audio file. Skipped')
+				
+		cdrom.size_compare((size+mp3_ogg_size), mp3_ogg_size)
+		print
+		
+		list_dir = listdir(iso.tempdir)
+		old_temp_wavs = []
+		for x in list_dir:
+			if compile("^burn_1").search(x[:5], 0):
+				old_temp_wavs.append(normpath(iso.tempdir+x))
+		if old_temp_wavs:
+			print
+			for x in old_temp_wavs:
+				print x
+			if ask_ok(_('You have old burn audio files in temporary directory. Do you want to remove them?\n(enter \'N\' to exit, \'y\' to delete temporary files) '), False):
+				for x in old_temp_wavs:
+					print _('removing '),x,"..."
+					remove(x)
+			else:
+				sys.exit()
+		print
+		print "---------------------------------------------"
+		print "Burn - " + _('Track summary')
+		print "---------------------------------------------"
+		for i in list:
+			track_number = track_number + 1
+			base, ext = os.path.splitext(i)
+			ext = string.lower(ext)
+			#---------------- OGG and MP3
+			if ext == '.mp3' or ext == '.ogg':
+				if exists(i):
+					y = abspath(i)
+					if isfile(y):
+						info = FileInfo(y)
+						if info.title:
+							print track_number, ")\t",info.duration, "-", info.title #, "-", info.album, "-", info.artist, "-", info.bitrate
+						else:
+							print track_number, ")\t",info.duration, "-",  abspath(i)
+						total_audio_time = total_audio_time + info.total_time
+			else:
+				print track_number, ")\t", compute_duration(getsize(abspath(i)) / 176400), "-", abspath(i)
+				total_audio_time = total_audio_time + getsize(abspath(i)) / 176400
+		# print "Total audio time: ", int(total_audio_time)
+		print
+		print _('Total Audio-CD: '), compute_duration(int(total_audio_time))
+		print
+		if external_decod > 0:
+			print _('Performing audio decoding with external decoder.')
+		else:
+			print _('Performing audio decoding with burn\'s native functions.')
+		for i in list:
+			track_number2 = track_number2 + 1
+			base, ext = os.path.splitext(i)
+			ext = string.lower(ext)
+			#---------------- OGG and MP3
+			if ext == '.mp3' or ext == '.ogg':
+				counter = counter + 1
+				if ext == '.mp3':
+					track_type = 'MP3'
+				else:
+					track_type = 'OGG'
+				if exists(i):
+					y = abspath(i)
+					if isfile(y):
+						#Shows full path ogg files
+						print "[",track_number2,"/",track_number,"] ",track_type,_('\tProcessing '),y
+						curfile = os.path.basename(y)
+						logger.info("Decoding %s.." % curfile)
+
+						info = FileInfo(y)
+						#Shows ID3 TAGS
+						#print "\t\tTitle: \t\t",info.title
+						#print "\t\tAlbum: \t\t",info.album
+						#print "\t\tArtist: \t",info.artist
+						#Convert mp3/ogg file in tempdir/file.[mp3|ogg].wav
+						#dev=ao.AudioDevice('wav', filename=normpath(iso.tempdir + 'burn_' + `counter`) +'.wav', overwrite=True)
+					if ext == '.mp3':
+						if external_decod > 0:
+							mp3_line = mp3_decoder + ' ' + mp3_decoder_option + ' ' + normpath(iso.tempdir +  'burn_' + `counter`) + '.wav ' + "\"" + y + "\""
+							system(mp3_line)
+						else: 
+							dev=ao.AudioDevice('wav', filename=normpath(iso.tempdir + 'burn_' + `counter`) +'.wav', overwrite=True)
+							pbar=progressBar(0,100,30)
+							af = mad.MadFile(y)
+							old_progress=0
+							while 1:
+								buf = af.read()
+								if buf is None:break
+								progress=af.current_time()*100/af.total_time()
+								if progress > old_progress:
+									pbar.updateAmount(progress)
+									print pbar, "\r",
+									sys.stdout.flush()
+								old_progress=progress
+								dev.play(buf,len(buf))
+						audio_list.append(normpath(iso.tempdir + 'burn_' + `counter`) +'.wav')
+						to_be_removed.append(normpath(iso.tempdir + 'burn_' + `counter`) +'.wav')
+					elif ext == '.ogg':
+						SIZE = 4096
+						if external_decod > 0:
+							ogg_line = ogg_decoder + ' ' + ogg_decoder_option + ' ' + normpath(iso.tempdir +  'burn_' + `counter`) + '.wav ' + "\"" + y + "\""
+							system(ogg_line)
+						else:
+							dev=ao.AudioDevice('wav', filename=normpath(iso.tempdir + 'burn_' + `counter`) +'.wav', overwrite=True)
+							pbar=progressBar(0,100,30)
+							af = ogg.vorbis.VorbisFile(y)
+							old_progress=0
+							while 1:
+								(buf, bytes, bit) = af.read(SIZE)
+								if bytes == 0: break
+								progress=af.time_tell()*100/af.time_total(-1)
+								if progress > old_progress:
+									pbar.updateAmount(progress)
+									print pbar, "\r",
+									sys.stdout.flush()
+								old_progress=progress
+								dev.play(buf, bytes)
+						
+						audio_list.append(normpath(iso.tempdir + 'burn_' + `counter`) +'.wav')
+						to_be_removed.append(normpath(iso.tempdir + 'burn_' + `counter`) +'.wav')
+					else:
+						err(y + _(': not a valid audio file.'))
+			#------------------ WAV
+			if ext == '.wav':
+				track_type = 'WAV'
+				if exists(i):
+					y = abspath(i)
+					print "[",track_number2,"/",track_number,"] ",track_type,_('\tProcessing '),y
+					audio_list.append(y)
+		
+		#----------------- cdrecord line generation -------------------------
+	
+		#building cdrecord audio line
+		for x in audio_list:
+			tracks = tracks + '\"' + x + '\"' + ' '
+			#tracks = tracks + x + ' '
+		#creates cdrecord line
+		cdrom.line_create()
+		#appendig tracks to cdrecord line
+		cdrom.cdrecord_line_append('-audio ' + tracks)
+		a = cdrom.cdrecord_line_view()
+		#print a
+		#burning CD
+		cdrom.create()
+		#while ask_ok(_('Do you want to use processed audio files to create another Audio CD now? (y/N) '), False):
+		#	cdrom.create()
+		#removing temp audio files
+		for x in to_be_removed:
+			if exists(x):
+				print _('removing '),x,"..."
+				remove(x)
+
+		sys.exit()
+
+if __name__ == '__main__':
+	try:
+		main()
+	except KeyboardInterrupt:
+		print
+		print _('burn: exiting now...')

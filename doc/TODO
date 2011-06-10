@@ -1,0 +1,33 @@
+
+BURNSTATION CLIENT TODO
+=======================
+
+BUGS:
+
+* make display of burning progress more beautiful :-)  maybe pie chart style circle.
+* implement torrents for contents exchange
+  * each station serves a list having: CONFIG_TRACKER_URL/audio.torrent URL , CONFIG_MEDIA_URL/target_dir
+* fix song change on playback end
+* resize all images to 300x300
+* show burnstation logo at startup
+* recursive add album to playlist 
+
+DONE * replace depend on python-gst with python-gst0.10 for client debian package.
+DONE * make burn.py executable, otherwise burning fails with error "decoder log index error"
+DONE * allow user to specify a label name or choose from the list
+DONE * recursive add files to fs_playlist (for publishing)
+DONE * bring back joypad config for NCL
+DONE * remove 'copy to USB' option from burn menu
+DONE * update sql for 2.0
+--------------------------------------------------------------------------------------------
+FROM ERIC
+
+DONE * joystick-left kills the client.
+DONE * decoding finished message appears when starting decoding.
+DONE * entered CD only after burn audio command >> burning progress shows: bufsize:11....=1083KB
+DONE * make both buttons switch list  on the left front side of joystick
+DONE * multiple (two and then 3) instances of burnstation client
+--------------------------------------------------------------------------------------------
+DONE * fix bug with incorrect decoding when burning audio
+DONE * add burn DATA CD
+

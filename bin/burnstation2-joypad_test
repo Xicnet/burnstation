@@ -1,0 +1,80 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+import sys
+import time
+
+import pygame
+import pygame.joystick
+import pygame.display
+
+pygame.display.init()
+pygame.joystick.init() #initialize joystick module
+pygame.joystick.get_init() #verify initialization (boolean)
+
+BUTTON_X = "but X"
+BUTTON_Y = "but Y"
+
+# initialize
+num_joysticks = pygame.joystick.get_count()
+
+if num_joysticks == 0:
+    print "[!!] ERROR: no joystick detected. (Is it connected?)"
+    sys.exit(1)
+
+if num_joysticks > 0:
+    stick = pygame.joystick.Joystick(0)
+    stick.init() # now we will receive events for the joystick
+    axes    = pygame.joystick.Joystick(0).get_numaxes()
+    hats    = pygame.joystick.Joystick(0).get_numhats()
+    balls   = pygame.joystick.Joystick(0).get_numballs()
+    buttons = pygame.joystick.Joystick(0).get_numbuttons()
+
+print
+print "burnstation - joypad test"
+print
+print "Connected joysticks: %i" % num_joysticks
+print "Joystick ID        : " + str(pygame.joystick.Joystick(0).get_id())
+print "Joystick model     : " + str(pygame.joystick.Joystick(0).get_name())
+print
+print "Details"
+print "======================="
+print "Number of Axes     : %i" % axes
+print "Number of Hats     : %i" % hats
+print "Number of Balls    : %i" % balls
+print "Number of Buttons  : %i" % buttons
+
+print
+print "Press your joypad buttons to learn which is which."
+print "and edit /usr/share/burnstation-server-2.0/JoyConf.py to map them with each action."
+print
+print "Remember to adapt your /etc/burnstation/burnstation2.conf config file to your joypad name."
+print
+
+# event loop
+while 1:
+    for event in pygame.event.get():
+        #print event
+        if event.type == pygame.JOYBUTTONDOWN:
+            joy = event.joy
+            butt = event.button
+            print "Joy Button pressed: %i" % (butt)
+
+    event = pygame.event.poll()
+
+    for a in range(axes):
+        v = pygame.joystick.Joystick(0).get_axis(a)
+        if v <> 0: print "Joy Axis %i moved: %f" % (a,v)
+
+    if False:
+
+        if event.type == pygame.JOYBUTTONDOWN:
+            joy = event.joy
+            butt = event.button
+            print "Joy: %i Button: %i DOWN" % (joy,butt)
+ #       if event.type == pygame.JOYAXISMOTION:
+            joy = event.joy
+            axis = event.axis
+            print "Joy: %i Axis: %i = $i" % (joy,axis,pygame.joystick.Joystick(0).get_axis(0))
+
+    time.sleep(0.25)

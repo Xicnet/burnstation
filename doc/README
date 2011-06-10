@@ -1,0 +1,54 @@
+
+Burnstation :: free media distribution system
+=============================================
+
+( Read the INSTALL file for setup instructions )
+
+WHAT IS IT?
+
+Burnstation is a complete system client-server model based, to navigate through media
+contents, listen to them and select your favorites to burn a CD for takeaway.
+
+HOW WAS IT MADE?
+
+It consists of two parts:
+
+I. SERVER SIDE ::
+
+The server interface for managing contents is absolutely web based, which means
+you can control it from any browser running on a box connected to the Burnstation Network.
+It connects to the database held on the server itself and provides the content information
+to the web-clients accesing the server contents management or backend (netjuke) and also
+serves the clients requesting the contents information to display on the "Info Panels"
+
+- works as a DHCP server for the Burnstation clients to autoconfigure
+- works also as a local DNS (nameserver) for the Burnstation Network
+- holds a shared media directory which the clients should mount locally
+- holds the backend interface and the SQL server (for the moment only MySQL is supported!)
+- holds the media database with all the information about the contents
+
+II. CLIENT SIDE ::
+
+The client interface was re-coded from wxPython to PyGame.
+
+- runs the Burnstation client interface (python code)
+- mounts locally the shared media directory from the server (for distributed setups)
+- copies from server to local harddrive (spool dir) and decompresses the music
+  when AUDIO burn-mode is selected and converts to Stereo 16-bit 44.1KHz wave files
+  to burn as music audio-CD (this consumes CPU!)
+- copies from server to local harddrive (spool dir) and creates the ISO image
+  for burning as data-mode (consumes CPU and network!)
+
+The Burnstation's Content Management System is based on a hacked version of Netjuke
+(whose development stopped some time ago and now merged with Jinzora - http://jinzora.org)
+GPL software, which is the most complete and developed web + database
+for managing huge media collections I've found by the time of writing this software.
+
+MAILINGLIST
+
+we are running a mailinglist where you can contact the developers
+and responsible persons for the Burnstation project:
+
+https://xicnet.com/cgi-bin/mailman/listinfo/burnstation
+
+feel free to contact us!
