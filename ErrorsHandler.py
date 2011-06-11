@@ -119,7 +119,7 @@ class StderrFaker:
         #print "MyStdErr: " + message
         pass
 
-sys.stderr = StderrFaker()
+#sys.stderr = StderrFaker()
 #-------------------------------------------
 '''
 class StdoutFaker:
@@ -140,6 +140,6 @@ class Redirect:
         #self.stdout.write(string.lower(s))
         if self.save == True: logger.info("(stdout) "+s.strip())
 
-sys.stdout = Redirect(sys.stdout)
+#sys.stdout = Redirect(sys.stdout)
 #-------------------------------------------
 

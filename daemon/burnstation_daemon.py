@@ -136,19 +136,24 @@ def stop_daemon():
 
 #--------------------------------------------------------------------
 if __name__ == '__main__':
-	if sys.argv[1] == 'stop':
+    print 1
+    if len(sys.argv) < 2:
+        print "Usage: burnstation_daemon.py [start|stop]"
+        sys.exit(0)
+    if sys.argv[1] == 'stop':
             # stop the daemon
             stop_daemon()
             sys.exit(0)
-
-	try: 
-		pid = os.fork() 
-		if pid > 0:
-			print "daemon PID is: " + str(pid)
-			sys.exit(pid) 
-	except OSError, e: 
-		print >>sys.stderr, "fork failed: %d (%s)" % (e.errno, e.strerror) 
-		sys.exit(1)
+    print 2
+    try: 
+        pid = os.fork() 
+        print "start"
+        if pid > 0:
+            print "daemon PID is: " + str(pid)
+            sys.exit(pid) 
+    except OSError, e: 
+        print >>sys.stderr, "fork failed: %d (%s)" % (e.errno, e.strerror) 
+        sys.exit(1)
         
 	try:
             # server host is a tuple ('host', PORT)
