@@ -1,0 +1,2 @@
+python remove_white_spaces.py
+perl fixname.pl -S _ -v /mnt/sda5/music/

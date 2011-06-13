@@ -18,7 +18,8 @@ db.set_character_set('utf8')
 
 #--------------------------------------------------------------------
 def get_whitespace_tracks():
-    sql = "SELECT id, location FROM netjuke_tracks WHERE location REGEXP '.* .*' LIMIT 100"
+    #sql = "SELECT id, location FROM netjuke_tracks WHERE location REGEXP '* .*' LIMIT 100"
+    sql = """SELECT id, location FROM netjuke_tracks WHERE location REGEXP '.*[ |%20].*'"""
     #logger.debug( sql )
 
     cursor = db.cursor()
@@ -39,13 +40,11 @@ def renamer(tracks):
         tr_id = track['id']
         filepath = config.musicPath + location
         print filepath
-        if isfile(filepath):
-            newlocation = location.replace(' ', '_')
+        newlocation = location.replace(' ', '_').replace('%20', '_')
+        print "UPDATING TO: ", newlocation
 
-            sql = "UPDATE netjuke_tracks SET location = '%s' WHERE id = '%i'" % (newlocation, tr_id)
-            cursor = db.cursor()
-            cursor.execute(sql)
-
+        cursor = db.cursor()
+        cursor.execute("UPDATE netjuke_tracks SET location = %s WHERE id = %s", (newlocation, tr_id))
 tracks = get_whitespace_tracks()
 renamer(tracks)
 
