@@ -77,7 +77,7 @@ class KeyboardController:
 
             #Handle Input Events
             for event in pygame.event.get():
-                #logger.info( str(event) )
+                ##logger.info( str(event) )
 
                 action = None
                 current = self.evManager.GetFocused()
@@ -350,6 +350,12 @@ class KeyboardController:
             if button == joyMap[joyType]['STOP']: # click left hat = stop
                 if sprites['burner'].sprite.visible: action = 'BURN_AUDIO'
                 else: action = 'STOP'
+            if button == joyMap[joyType]['GO_UP']: 
+                sprite = self.evManager.listeners[self.evManager.current].sprite
+                try:
+                    sprite.BrowseForward()
+                except Exception, e:
+                    if str(e) == "PLAY TRACK": action = 'PLAY'
         #---------------------------
         elif joyType == 'precision':
             # Logitech precision joypad
