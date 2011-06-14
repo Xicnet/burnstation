@@ -28,7 +28,7 @@ class User:
 	for record in result:
 	    userInfo['ID'] = record[0]
 	    userInfo['nickname'] = record[1]
-	    userInfo['home'] = config.musicPath + userInfo['nickname']
+	    userInfo['home'] = config.musicPath + 'music/' + userInfo['nickname']
 	    userInfo['spoolDir'] = config.spoolPath + userInfo['nickname']
 	
 	return userInfo
