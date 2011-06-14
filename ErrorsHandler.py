@@ -102,7 +102,7 @@ def myExceptHook(type, value, tb):
     lines = traceback.format_exception(type, value, tb)
 
     exception = string.join(lines)
-    
+
     start      = "----------------- START CUT HERE ----------------\n"
     timestamp  = "Timestamp: " + str( datetime.datetime.now() ) + "\n"
     end        = "----------------- END CUT HERE ------------------"
@@ -119,7 +119,7 @@ class StderrFaker:
         #print "MyStdErr: " + message
         pass
 
-#sys.stderr = StderrFaker()
+sys.stderr = StderrFaker()
 #-------------------------------------------
 '''
 class StdoutFaker:
@@ -140,6 +140,6 @@ class Redirect:
         #self.stdout.write(string.lower(s))
         if self.save == True: logger.info("(stdout) "+s.strip())
 
-#sys.stdout = Redirect(sys.stdout)
+sys.stdout = Redirect(sys.stdout)
 #-------------------------------------------
 

@@ -28,6 +28,7 @@ class OggPlayer:
         self._playlist    = []
         self._current     = -1
         self.volume_level = 0.5
+        self.time         = 0
 
         logger.info("MPD player init complete")
 
@@ -49,6 +50,7 @@ class OggPlayer:
 
     def Play(self):
         client.connect("localhost", 6600)  # connect to localhost:6600
+        self.time = 0
         client.stop()
         client.play()
         client.close()                     # send the close command
@@ -61,9 +63,10 @@ class OggPlayer:
         client.disconnect()
 
     def Seek(self, time):
+        self.time += time
         #os.popen('mpc seek +00:00:10')
         client.connect("localhost", 6600)  # connect to localhost:6600
-        client.seek(0, time)
+        client.seek(0, self.time)
         client.close()                     # send the close command
         client.disconnect()
 
