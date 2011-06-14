@@ -14,7 +14,7 @@ import LoadConfig
 config = LoadConfig.LoadConfig()
 from ErrorsHandler import *
 
-import gst_player
+from mpd_player import OggPlayer
 
 PORT = 4096
 
@@ -22,7 +22,7 @@ PORT = 4096
 # server
 #-----------------------------------------------------------------
 
-p = gst_player.OggPlayer()
+p = OggPlayer()
 
 class TCPRequestHandler(SocketServer.BaseRequestHandler ):
     global p
@@ -46,7 +46,7 @@ class TCPRequestHandler(SocketServer.BaseRequestHandler ):
             if data.strip() == 'QUIT':
                 logger.info( 'quitting..' )
                 return
-            else: 
+            else:
                 if ( data[:5] == 'PLAY ' ):
                     file = data[5:]
                     #self.request.send("Playing file: %s" % file)
@@ -80,19 +80,19 @@ class TCPRequestHandler(SocketServer.BaseRequestHandler ):
                         mode = commands[0].split("_")[1]
                         print "MODE : ", mode
                         tracks = commands[1].split(":")
-    
+
                         if   mode == 'A': mode = 'AUDIO'
                         elif mode == 'D': mode = 'DATA'
                         elif mode == 'U': mode = 'USB'
-    
+
                         #logger.debug(mode)
                         #logger.debug(tracks)
-    
+
                         # FIXME : ugly hardcode
                         home = "/usr/share/burnstation-client-2.0"
                         cmd = home + '/burn.py'
                         args = [cmd, mode]
-    
+
                         for track in tracks:
                             if track != '':
                                 args.append(track)
@@ -105,12 +105,12 @@ class TCPRequestHandler(SocketServer.BaseRequestHandler ):
                         logger.debug("-------------------------------")
                         logger.debug(args)
                         logger.debug("-------------------------------")
-    
+
                         try:
                             logger.debug("Spawning burn script..")
                             b = os.spawnve(os.P_NOWAIT, cmd, args, os.environ)
                         except Exception, e: logger.error("burnstation daemon EXCEPTION: " + str(e))
-    
+
                         return
                     except Exception, e:
                         logger.error("EXCEPTION: %s" % str(e))
@@ -145,22 +145,37 @@ if __name__ == '__main__':
             stop_daemon()
             sys.exit(0)
     print 2
-    try: 
-        pid = os.fork() 
+    try:
+        pid = os.fork()
         print "start"
         if pid > 0:
             print "daemon PID is: " + str(pid)
-            sys.exit(pid) 
-    except OSError, e: 
-        print >>sys.stderr, "fork failed: %d (%s)" % (e.errno, e.strerror) 
+            sys.exit(0)
+    except OSError, e:
+        print >>sys.stderr, "fork failed: %d (%s)" % (e.errno, e.strerror)
         sys.exit(1)
-        
-	try:
-            # server host is a tuple ('host', PORT)
-	    tcpserver = SocketServer.ThreadingTCPServer(('127.0.0.1', PORT), TCPRequestHandler)
-	    tcpserver.allow_reuse_address = True
-            tcpserver.serve_forever()
-        except Exception, e:
-            logger.error(MODULE+" EXCEPTION: " + str(e))
-            logger.error(MODULE+" daemon NOT starting")
 
+    try:
+        # server host is a tuple ('host', PORT)
+        tcpserver = SocketServer.ThreadingTCPServer(('127.0.0.1', PORT), TCPRequestHandler)
+        tcpserver.allow_reuse_address = True
+        tcpserver.serve_forever()
+    except Exception, e:
+        logger.error(MODULE+" EXCEPTION: " + str(e))
+        logger.error(MODULE+" NOT starting")
+"""
+
+if __name__ == '__main__':
+    try:
+        pid = os.fork()
+        if pid > 0:
+            sys.exit(0)
+    except OSError, e:
+        print >>sys.stderr, "fork failed: %d (%s)" % (e.errno, e.strerror)
+        sys.exit(1)
+    tcpserver = SocketServer.ThreadingTCPServer(('127.0.0.1', PORT), TCPRequestHandler)
+    tcpserver.allow_reuse_address = True
+
+    tcpserver.serve_forever()
+
+"""
