@@ -6,6 +6,10 @@ import urllib
 import sys
 from ErrorsHandler import *
 
+import  LoadConfig
+config = LoadConfig.LoadConfig()
+
+
 client = mpd.MPDClient()           # create client object
 #client.stop()
 #client.connect("localhost", 6600)  # connect to localhost:6600
@@ -32,9 +36,16 @@ class OggPlayer:
         self._current = -1
 
     def AddToPlaylist(self, uri):
-        self.uri = uri
-        logger.info("Added " + uri)
-        self._playlist.append(uri)
+        basepath = 'file://' + config.musicPath + 'music/'
+        uri = uri.replace(basepath, '')
+        logger.info("OggPlayer.AddToPlayList trying to add: " + uri)
+        client.connect("localhost", 6600)  # connect to localhost:6600
+        client.clear()
+        client.add(uri)
+        client.close()                     # send the close command
+        client.disconnect()
+        logger.info("OggPlayer.AddToPlayList: " + uri)
+        print("OggPlayer.AddToPlayList: " + uri)
 
     def Play(self):
         client.connect("localhost", 6600)  # connect to localhost:6600
@@ -52,7 +63,8 @@ class OggPlayer:
     def Seek(self, time):
         #os.popen('mpc seek +00:00:10')
         client.connect("localhost", 6600)  # connect to localhost:6600
-        client.seek(1, time)
+        client.seek(0, time)
+        client.close()                     # send the close command
         client.disconnect()
 
     def SetVolume(self, level):

@@ -26,7 +26,7 @@ class OggPlayer:
         self._current = -1
         self.volume_level = 0.5
 
-        self._player = gst.element_factory_make("playbin", "player")
+        self._player = gst.element_factory_make("playbin2", "player")
 
         volume = gst.element_factory_make("volume")
         self._player.add(volume)

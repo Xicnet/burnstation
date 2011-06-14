@@ -54,6 +54,8 @@ while 1:
  #       if event.type == pygame.JOYAXISMOTION:
             joy = event.joy
             axis = event.axis
-            print "Joy: %i Axis: %i = $i" % (joy,axis,pygame.joystick.Joystick(0).get_axis(0))
+            #print "Joy: %i Axis: %i = $i" % (joy,axis,pygame.joystick.Joystick(0).get_axis(0))
+        else:
+            print event
 
     time.sleep(0.5)

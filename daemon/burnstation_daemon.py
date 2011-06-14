@@ -14,6 +14,7 @@ import LoadConfig
 config = LoadConfig.LoadConfig()
 from ErrorsHandler import *
 
+#from gst_player import OggPlayer
 from mpd_player import OggPlayer
 
 PORT = 4096
