@@ -7,8 +7,8 @@ import sys
 from ErrorsHandler import *
 
 client = mpd.MPDClient()           # create client object
-client.connect("localhost", 6600)  # connect to localhost:6600
 #client.stop()
+#client.connect("localhost", 6600)  # connect to localhost:6600
 #client.close()                     # send the close command
 #client.disconnect() 
 
@@ -37,14 +37,23 @@ class OggPlayer:
         self._playlist.append(uri)
 
     def Play(self):
-        self.Stop()
+        client.connect("localhost", 6600)  # connect to localhost:6600
+        client.stop()
         client.play()
+        client.close()                     # send the close command
+        client.disconnect()
 
     def Stop(self):
+        client.connect("localhost", 6600)  # connect to localhost:6600
         client.stop()
+        client.close()                     # send the close command
+        client.disconnect()
 
     def Seek(self, time):
-        pass
+        #os.popen('mpc seek +00:00:10')
+        client.connect("localhost", 6600)  # connect to localhost:6600
+        client.seek(1, time)
+        client.disconnect()
 
     def SetVolume(self, level):
         self.volume_level = level
