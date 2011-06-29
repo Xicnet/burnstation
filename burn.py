@@ -11,8 +11,7 @@ import shutil
 
 from tools import cmdexec
 
-import  LoadConfig
-config = LoadConfig.LoadConfig()
+from LoadConfig import config
 sys.path.append(config.bshome)
 from ErrorsHandler import *
 

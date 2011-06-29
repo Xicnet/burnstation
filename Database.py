@@ -4,8 +4,7 @@
 import MySQLdb
 import  sys
 sys.path.append('..')
-import  LoadConfig
-config = LoadConfig.LoadConfig()
+from LoadConfig import config
 
 import urllib
 from MiscTools import *

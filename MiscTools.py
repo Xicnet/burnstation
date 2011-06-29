@@ -4,8 +4,7 @@
 import  sys
 sys.path.append('..')
 from ErrorsHandler import *
-import  LoadConfig
-config = LoadConfig.LoadConfig()
+from LoadConfig import config
 
 import re
 import  MySQLdb

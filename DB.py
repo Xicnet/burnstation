@@ -1,8 +1,7 @@
 #!/bin/env python
 # -*- coding: utf-8 -*-
 
-import LoadConfig
-config = LoadConfig.LoadConfig()
+from LoadConfig import config
 import MySQLdb
 from ErrorsHandler import *
 

@@ -5,7 +5,7 @@ import sys, os.path
 sys.path.append('..')
 sys.path.append('../lib')
 from ErrorsHandler import *
-import  LoadConfig
+from LoadConfig import config
 from ImportCommon import *
 
 import MySQLdb
@@ -17,7 +17,7 @@ from ImportOGG import ImportOGG
 
 class VorbisFile:
     def __init__(self, fn):
-        self.config = LoadConfig.LoadConfig()
+        self.config = config
 
         if fn is not None:
             self.SetFile(fn)

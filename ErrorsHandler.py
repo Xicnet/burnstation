@@ -1,6 +1,5 @@
 import logging
-import  LoadConfig
-config = LoadConfig.LoadConfig()
+from LoadConfig import config
 
 verbosity = 5
 

@@ -13,8 +13,8 @@ import sys, os, pygame
 from pygame.locals import *
 
 import Common
-import  LoadConfig
-config = LoadConfig.LoadConfig()
+from LoadConfig import config
+
 basedir = config.bshome
 sys.path.append(config.bshome)
 Common.Init(config.bshome)

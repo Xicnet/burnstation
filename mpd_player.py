@@ -6,8 +6,7 @@ import urllib
 import sys
 from ErrorsHandler import *
 
-import  LoadConfig
-config = LoadConfig.LoadConfig()
+from LoadConfig import config
 
 
 client = mpd.MPDClient()           # create client object

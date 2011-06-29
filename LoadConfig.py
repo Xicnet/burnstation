@@ -6,7 +6,7 @@ import MySQLdb
 #------------------------------------------------------------------------
 # load configuration values from /etc/burnstation/burnstation2.conf
 #------------------------------------------------------------------------
-class LoadConfig:
+class LoadConfig():
     def __init__(self):
         self.LoadConfig("/etc/burnstation/burnstation2.conf")
 	
@@ -269,3 +269,4 @@ class LoadConfig:
         else:
             return None
 
+config = LoadConfig()

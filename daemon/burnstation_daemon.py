@@ -10,8 +10,7 @@ import sys, os, os.path
 sys.path.append(os.getcwd())
 sys.path.append("..")
 
-import LoadConfig
-config = LoadConfig.LoadConfig()
+from LoadConfig import config
 from ErrorsHandler import *
 
 #from gst_player import OggPlayer

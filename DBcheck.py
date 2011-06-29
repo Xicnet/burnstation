@@ -3,8 +3,7 @@
 
 import sys, os
 import MySQLdb
-import LoadConfig
-config = LoadConfig.LoadConfig()
+from LoadConfig import config
 
 import urllib
 import os.path
