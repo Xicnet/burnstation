@@ -6,8 +6,7 @@ sys.path.append('..')
 sys.path.append('../import')
 sys.path.append('../lib')
 
-import LoadConfig
-config=LoadConfig.LoadConfig()
+from LoadConfig import config
 from ErrorsHandler import *
 
 db = MySQLdb.connect(host=config.DBhost, user=config.DBuser, passwd=config.DBpass, db=config.DB)

@@ -143,6 +143,7 @@ def copyExactTree(source, target, spoolDir, noSpool=0):
         newFile = removePathComponent(newFile, spoolDir)
 
     newFileDir = os.path.dirname(newFile)
+    print "NEW FILE DIR: %s" % newFileDir
 
     if not os.path.exists(newFileDir):
 	os.makedirs(newFileDir)

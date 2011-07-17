@@ -13,8 +13,8 @@ sys.path.append("..")
 from LoadConfig import config
 from ErrorsHandler import *
 
-#from gst_player import OggPlayer
-from mpd_player import OggPlayer
+from gst_player import OggPlayer
+#from mpd_player import OggPlayer
 
 PORT = 4096
 

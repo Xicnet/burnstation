@@ -9,7 +9,7 @@ import MySQLdb
 class LoadConfig():
     def __init__(self):
         self.LoadConfig("/etc/burnstation/burnstation2.conf")
-	
+
     def ParseConfig(self, file, config={}):
         """
         returns a dictionary with keys of the form
@@ -23,74 +23,77 @@ class LoadConfig():
               for opt in cp.options(sec):
                      config[name + "." + string.lower(opt)] = string.strip(cp.get(sec, opt))
         return config
-        
+
     def LoadConfig(self, configfile):
         """ GLOBAL CONFIGURATION VARIABLES """
 
         self.JoyName = 'none'
 
-	# load the config
-	self.config = self.ParseConfig(configfile)
-     
+    	# load the config
+    	self.config = self.ParseConfig(configfile)
+
         # Database name
         self.DB = self.config['database.db']
 
-	# Database hostname or IP address
+    	# Database hostname or IP address
         self.DBhost = self.config['database.dbhost']
 
-	# Database username
+    	# Database username
         self.DBuser = self.config['database.dbuser']
-	
-	# Database user password
+
+        # Database user password
         self.DBpass = self.config['database.dbpass']
 
-	# Mountpoint for shared media directory path
+        # Mountpoint for shared media directory path
         self.musicPath = self.config['paths.musicpath']
 
-	# Spool directory path
+        # Spool directory path
         self.spoolPath = self.config['paths.spoolpath']
-	
-	# burnstation code home
+
+        # burnstation code home
         self.bshome = self.read('paths.home', '/usr/share/burnstation-client-2.0')
 
-	# burnstation log dir
+        # burnstation log dir
         self.logPath = self.read('paths.log', '/var/log/burnstation')
 
-	# Server name which serves the "Info Panels"
+        # Server name which serves the "Info Panels"
         self.webUrl = self.config['paths.weburl']
 
-	# Web server document root
+        # Web server document root
         self.webRoot = self.read('paths.webroot', '/usr/share/burnstation-server/webspace')
 
-	# CD-R drive (check this command: cdrecord -scanbus)
-	self.burnDevice = self.config['burning.burndevice']
+        # Web server document root
+        self.import_basedir = self.read('paths.import_basedir', '/tmp')
 
-	# CD-R drive burn speed
-	self.burnSpeed = self.config['burning.burnspeed']
+        # CD-R drive (check this command: cdrecord -scanbus)
+        self.burnDevice = self.config['burning.burndevice']
 
-	# Simulation instead of real burn
-	self.burnDummy = self.read('cdrecord.dummy', 'off')
+        # CD-R drive burn speed
+        self.burnSpeed = self.config['burning.burnspeed']
 
-	# Eject CD after burning
-	self.burnEject = self.read('cdrecord.eject', 'on')
+        # Simulation instead of real burn
+        self.burnDummy = self.read('cdrecord.dummy', 'off')
 
-	# Results listing limit
+        # Eject CD after burning
+        self.burnEject = self.read('cdrecord.eject', 'on')
+
+        # Results listing limit
         self.treeLimit = int(self.config['debugging.treelimit'])
 
-	# Default navigation tree type
+        # Default navigation tree type
         self.treeType = self.config['extra.treetype']
-        
-	# joystick type to use
+
+        # joystick type to use
         self.joyType = self.config['extra.joytype']
-        
-	# audio player to be used
+
+        # audio player to be used
         self.player = self.read('extra.player', 'gst')
-        
-	# playlist length maximum limit
-	self.MaxPlLength = self.config['burning.maxpllength']
-	
-	# playlist size maximum limit
-	self.MaxPlSize = self.config['burning.maxplsize']
+
+        # playlist length maximum limit
+        self.MaxPlLength = self.config['burning.maxpllength']
+
+        # playlist size maximum limit
+        self.MaxPlSize = self.config['burning.maxplsize']
 
         # GUI size
         self.guiSizeX   = int(self.read('gui.guisizex', 1018))
@@ -110,7 +113,7 @@ class LoadConfig():
         # joystick cursors
         self.joyCursors = int(self.read('joystick.cursors', 0))
 
-	# info track settings
+        # info track settings
         home = self.read('infotrack.data', '/usr/share/burnstation-client-2.0')
         self.srcdir = home + "/isosrc"
         self.tmpdir = self.spoolPath + "temp"
@@ -119,18 +122,17 @@ class LoadConfig():
         self.usersession = 'http://burnstation.kunstlabor.at/usersession.php?id='
 
         # cdrecord options
-	if self.config['cdrecord.dummy'] == 'on': self.cdrecord_dummy = ' -dummy'
+        if self.config['cdrecord.dummy'] == 'on': self.cdrecord_dummy = ' -dummy'
         elif self.config['cdrecord.dummy'] == 'off': self.cdrecord_dummy = ''
 
-	if self.burnEject == 'on': self.cdrecord_eject = ' -eject'
+        if self.burnEject == 'on': self.cdrecord_eject = ' -eject'
         elif self.burnEject == 'off': self.cdrecord_eject = ''
-        
-	#------------------------------------------------------
-	# FIXME Temporal hack for Music-Reports switch (language selection issue)
+	    #------------------------------------------------------
+        # FIXME Temporal hack for Music-Reports switch (language selection issue)
         self.SWMTF = self.config['debugging.swmtf']
 
-	#------------------------------------------------------
-	# Joystick actions
+        #------------------------------------------------------
+        # Joystick actions
         self.joymap = {}
 
 	if self.joyType == 'saitek': # for Saitek P2600 Rumble Force Pad

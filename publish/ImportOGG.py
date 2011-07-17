@@ -23,23 +23,20 @@ user = User()
 
 class ImportOGG:
     def __init__(self, fn, userInfo, mode='publish'):
-	self.fn             = fn
-	self.userInfo       = userInfo
-	self.mode           = mode
+        self.fn             = fn
+        self.userInfo       = userInfo
+        self.mode           = mode
         self.warnIncomplete = 1
-	tags                = ''
+        tags                = ''
 
         self.config        = LoadConfig.LoadConfig()
 
-	# open ogg file
-	self.af           = AudioFile(fn)
-	self.metadata     = self.af.read_comments()
+        # open ogg file
+        self.af           = AudioFile(fn)
+        self.metadata     = self.af.read_comments()
 
         if self.mode is 'publish':
-            #newFilePath = self.MoveImported(self.fn, self.userInfo['home'], self.userInfo['spoolDir'])
-            #newFilePath = removePathComponent(self.fn, "/usr/local/media/")
             newFilePath = self.fn
-            #print newFilePath
             logger.debug5( "ImportOGG() self.fn: " + self.fn )
             logger.debug5( "ImportOGG() newFilePath: " + newFilePath )
 
@@ -49,17 +46,15 @@ class ImportOGG:
         elif self.mode is 'edit':
             if self.import2db(self.fn):
                 logger.debug1( "Updated database from file: %s" % self.fn )
-	
+
     def isImported(self, path):
-        # replace .mp3 with .ogg to search on the database, as we do not have .mp3s there
-        #metadata = {"title":"TTTIIITTTLLLEEE", "artist":"AAARRRTTTIIISSSTTT", "license":"LLLIIICCCEEENNNSSSEEE"}
         metadata = {}
 
         path = removePathComponent(self.fn, "/usr/local/media/")
         name, ext = os.path.splitext(path)
 
         path = name + ".ogg"
-    
+
         db = DB.connect()
         cursor = db.cursor()
         sql  = "SELECT tr.id, tr.name, ar.name, al.name, la.name, li.name"
@@ -107,13 +102,13 @@ class ImportOGG:
 
     def MoveImported(self, file, target, spoolDir):
         return moveExactTree(file, target, spoolDir, 1)
-    
+
     def CopyImported(self, file, target, spoolDir):
-	logger.debug5( "---------------------------" )
+        logger.debug5( "---------------------------" )
         logger.debug5( "in ImportOGG.CopyImported: " )
         logger.debug5( "file: " + file )
         logger.debug5( "target: " + target )
-	logger.debug5( "---------------------------" )
+        logger.debug5( "---------------------------" )
 
         target = copyExactTree(file, target, spoolDir, 1)
 
@@ -121,23 +116,24 @@ class ImportOGG:
 
     def import2db(self, newFilePath):
 
-	self.af.SetFile(newFilePath)
-	self.metadata = self.af.read_comments()
-        print self.metadata
+        self.af.SetFile(newFilePath)
+        self.metadata = self.af.read_comments()
+        logger.debug99("at import2db, metadata is: %s" % self.metadata)
 
-	location = location2db(newFilePath, self.userInfo['home'])
+        location = location2db(newFilePath, self.userInfo['home'])
+        print "****************** LOCATION: %s" % location
 
         if self.mode is 'publish': (isImported, metadata) = self.isImported(location)
         elif self.mode is 'edit': isImported = 1
 
         logger.debug99( "------------------------------------" )
         logger.debug99( "in ImportOGG.import2db():" )
-	logger.debug99( "user home   = " + self.userInfo['home'] )
+        logger.debug99( "user home   = " + self.userInfo['home'] )
         logger.debug99( "is imported = " + str(isImported) )
         logger.debug99( "newFilePath = " + newFilePath )
         logger.debug99( "location    = " + location )
         logger.debug99( "------------------------------------" )
-        
+
 	if (self.mode is 'publish') and isImported:
             logger.debug1( "File already imported.. skipping: %s" % location )
             return
@@ -188,6 +184,7 @@ class ImportOGG:
         self.DoFileUploaderRelation(fileID, self.userInfo['ID'])
 
 	# FIXME: do some checks, and return False if this fails
+	print "="*77
 	return True
 
     def DoFileUploaderRelation(self, fileID, userID):

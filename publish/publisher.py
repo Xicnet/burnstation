@@ -6,8 +6,7 @@ sys.path.append(os.getcwd())
 sys.path.append(os.getcwd()+'/import')
 sys.path.append(os.getcwd()+'/lib')
 
-import LoadConfig
-config=LoadConfig.LoadConfig()
+from LoadConfig import config
 from ErrorsHandler import *
 
 db = MySQLdb.connect(host=config.DBhost, user=config.DBuser, passwd=config.DBpass, db=config.DB)
@@ -43,22 +42,22 @@ class Publisher:
             try:
                 parser = RecursiveParser()
                 supportedFormats = ['ogg']
-    
+
                 source = parser.getRecursiveFileList(self.source, supportedFormats)
             except Exception, e: logger.error( "ERROR. There was an exception: %s" % str(e) )
         return source
-    
+
     #---------------------------------------------------
     def saveLabel(self, file, label):
         '''read file and save label tag'''
         af = OggVorbis(file)
-    
+
         logger.info( "Tags BEFORE labelizer: " + str(af) )
-    
+
         af['label'] = label
         af.save()
         logger.info( "Tags AFTER labelizer: " + str(af) )
-    
+
     #---------------------------------------------------
     def label_tagger(self):
         "Recursively tag files with their proper 'Label' tag (metadata)..."
@@ -71,6 +70,7 @@ class Publisher:
         "Recursively import files from directory specified during instantiation"
 
         target = self.userInfo['home']
+        print "----------------- TARGET: ", target
         for file in self.files:
             newFile = copyExactTree(file, target, "")
             ImportOGG(newFile, self.userInfo)
