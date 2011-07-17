@@ -304,6 +304,7 @@ class Burner(pygame.sprite.Sprite):
             if media: return True
             else:
                 status = "Please, insert a blank CD and try again!"
+                os.system("eject")
                 self.ShowBurning(status)
                 return False
         except Exception, e: logger.error("burner EXCEPTION: " + str(e))

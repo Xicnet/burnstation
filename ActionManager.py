@@ -332,12 +332,12 @@ class KeyboardController:
             # Pinnacle e-design joypad
     
             if button == joyMap[joyType]['PLAYLIST_ADD']:
-                if sprites['burner'].sprite.visible: action = 'BURN_USB'
+                if sprites['burner'].sprite.visible: action = 'BURN_DATA'
                 else: action = 'PLAYLIST_ADD'
-            if button == joyMap[joyType]['BURN_DATA']:
-                if sprites['burner'].sprite.visible: action = 'BURN_DATA'
+            if button == joyMap[joyType]['BURN_AUDIO']:
+                if sprites['burner'].sprite.visible: action = 'BURN_AUDIO'
             if button == joyMap[joyType]['SEEK_FWD']:
-                if sprites['burner'].sprite.visible: action = 'BURN_DATA'
+                if sprites['burner'].sprite.visible: action = 'BURN_USB'
                 else: action = 'SEEK_FWD'
             if button == joyMap[joyType]['BURN']:
                 action = 'BURN'
@@ -350,7 +350,7 @@ class KeyboardController:
             if button == joyMap[joyType]['STOP']: # click left hat = stop
                 if sprites['burner'].sprite.visible: action = 'BURN_AUDIO'
                 else: action = 'STOP'
-            if button == joyMap[joyType]['GO_UP']: 
+            if button == joyMap[joyType]['BROWSE_FORWARD']: 
                 sprite = self.evManager.listeners[self.evManager.current].sprite
                 try:
                     sprite.BrowseForward()
