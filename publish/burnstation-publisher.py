@@ -42,22 +42,22 @@ class Publisher:
             try:
                 parser = RecursiveParser()
                 supportedFormats = ['ogg']
-    
+
                 source = parser.getRecursiveFileList(self.source, supportedFormats)
             except Exception, e: logger.error( "ERROR. There was an exception: %s" % str(e) )
         return source
-    
+
     #---------------------------------------------------
     def saveLabel(self, file, label):
         '''read file and save label tag'''
         af = OggVorbis(file)
-    
+
         logger.info( "Tags BEFORE labelizer: " + str(af) )
-    
+
         af['label'] = label
         af.save()
         logger.info( "Tags AFTER labelizer: " + str(af) )
-    
+
     #---------------------------------------------------
     def label_tagger(self):
         "Recursively tag files with their proper 'Label' tag (metadata)..."
@@ -71,7 +71,11 @@ class Publisher:
 
         target = self.userInfo['home']
         for file in self.files:
-            newFile = copyExactTree(file, target, "")
+            print "*+"*77
+            print "import2db src   : ", file
+            print "import2db target: ", target
+            print "++"*77
+            newFile = copyExactTree(file, target, config.import_basedir, 1)
             ImportOGG(newFile, self.userInfo)
 
 

@@ -62,11 +62,11 @@ class ImportOGG:
         sql += " WHERE location = '%s'" % MySQLdb.escape_string(path)
         sql += " AND tr.ar_id=ar.id AND tr.al_id=al.id AND tr.la_id=la.id AND tr.license=li.id"
 
-	logger.debug99( "Using SQL query to check if file is imported: %s" % sql )
+        logger.debug99( "Using SQL query to check if file is imported: %s" % sql )
         cursor.execute(sql)
         result = cursor.fetchall()
-	record = None
-	for record in result:
+        record = None
+        for record in result:
             metadata['ID']      = record[0]
             metadata['title']   = record[1]
             metadata['artist']  = unicode(record[2], 'utf8')
@@ -80,10 +80,10 @@ class ImportOGG:
 
     def setImported(self):
         '''
-	Should flag or delete from mp3tmp when file was imported, and delete the source file.
-	'''
+        Should flag or delete from mp3tmp when file was imported, and delete the source file.
+        '''
 
-	sourceFile = removePathComponent(self.fn, self.userInfo['spoolDir'])
+        sourceFile = removePathComponent(self.fn, self.userInfo['spoolDir'])
         name, ext  = os.path.splitext(sourceFile)
         sourceFile = name + ".mp3"
 
@@ -93,13 +93,14 @@ class ImportOGG:
         cursor = db.cursor()
         cursor.execute(sql)
         result = cursor.fetchall()
-	for record in result:
+        for record in result:
             sql = "UPDATE mp3tmp SET imported = 1 WHERE location = '%s'" % MySQLdb.escape_string(record[0])
             db.set_character_set('utf8')
             cursor = db.cursor()
             cursor.execute(sql)
             result = cursor.fetchall()
 
+    """
     def MoveImported(self, file, target, spoolDir):
         return moveExactTree(file, target, spoolDir, 1)
 
@@ -113,6 +114,7 @@ class ImportOGG:
         target = copyExactTree(file, target, spoolDir, 1)
 
         return target
+    """
 
     def import2db(self, newFilePath):
 
@@ -134,7 +136,7 @@ class ImportOGG:
         logger.debug99( "location    = " + location )
         logger.debug99( "------------------------------------" )
 
-	if (self.mode is 'publish') and isImported:
+    	if (self.mode is 'publish') and isImported:
             logger.debug1( "File already imported.. skipping: %s" % location )
             return
 
@@ -152,23 +154,23 @@ class ImportOGG:
         if self.metadata['title'] == '': title = MySQLdb.escape_string(filename)
         else: title = MySQLdb.escape_string(uniconvert2(self.metadata['title']).encode('utf8'))
         size = self.af.getSize()
-	time = int( self.af.getLength() )
-	track_number = self.af.getTag('track_number')
-	if track_number == '': track_number = self.af.getTag('tracknumber')
-	if track_number == '': track_number = 0
-	year = self.af.getTag('year')
-	if year == '': year = 0
-	bitrate = self.af.getBitrate()
-	sample_rate = self.af.getSamplerate()
-	kind = 'OGG/Vorbis'
-	location = MySQLdb.escape_string(uniconvert2(location).encode('utf8'))
-	comments = MySQLdb.escape_string(uniconvert2(self.metadata['comment']).encode('utf8'))
+    	time = int( self.af.getLength() )
+        track_number = self.af.getTag('track_number')
+        if track_number == '': track_number = self.af.getTag('tracknumber')
+        if track_number == '': track_number = 0
+        year = self.af.getTag('year')
+        if year == '': year = 0
+        bitrate = self.af.getBitrate()
+        sample_rate = self.af.getSamplerate()
+        kind = 'OGG/Vorbis'
+        location = MySQLdb.escape_string(uniconvert2(location).encode('utf8'))
+        comments = MySQLdb.escape_string(uniconvert2(self.metadata['comment']).encode('utf8'))
 
         if self.mode is 'publish':
             sql = "INSERT INTO"
         elif self.mode is 'edit':
             sql = "UPDATE"
-            trackID = getIDbyLocation(location)
+        trackID = getIDbyLocation(location)
 
         sql += " netjuke_tracks SET ar_id = '"+ str(artistID) +"', al_id = '"+ str(albumID) +"', ge_id = '1', la_id = '"+ str(labelID) +"', name = '"+ title +"', size = '"+ str(size) +"', time = '"+ str(time) +"', track_number = '"+ str(track_number) +"', year = '"+ str(year) +"', date = now(), bit_rate = '"+ str(bitrate) +"', sample_rate = '"+ str(sample_rate) +"', kind = '"+ kind +"', location = '"+ str(location) +"', comments = '"+ comments +"', mtime = now(), license = '"+ str(licenseID) +"', lg_id = '1', enabled = 2"
 
@@ -183,9 +185,9 @@ class ImportOGG:
         fileID = db.insert_id()
         self.DoFileUploaderRelation(fileID, self.userInfo['ID'])
 
-	# FIXME: do some checks, and return False if this fails
-	print "="*77
-	return True
+        # FIXME: do some checks, and return False if this fails
+        print "="*77
+        return True
 
     def DoFileUploaderRelation(self, fileID, userID):
         sql = "INSERT IGNORE INTO file_uploader SET file = '%i', uploader = '%i'" % (fileID, userID)
@@ -204,5 +206,5 @@ if __name__ == '__main__':
         userInfo = user.GetInfo(userEmail)
 
         # Uncomment the following line for tests
-        ImportOGG(oggFile, userInfo)
+        #ImportOGG(oggFile, userInfo)
 

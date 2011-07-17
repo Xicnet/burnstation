@@ -1,7 +1,7 @@
 import logging
 from LoadConfig import config
 
-verbosity = 5
+verbosity = 99
 
 class MyLogger:
     def __init__(self, file=None, format=None):

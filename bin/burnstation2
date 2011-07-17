@@ -4,7 +4,7 @@
 #
 
 CONFIG=/etc/burnstation/burnstation2.conf
-BSHOME=`grep home $CONFIG | awk -F"=" '{print $2}'`
+BSHOME=`grep ^home $CONFIG | awk -F"=" '{print $2}'`
 LOGS=`grep logs $CONFIG | awk -F"=" '{print $2}'`
 MYPID=`cat $LOGS/PID 2>/dev/null`
 

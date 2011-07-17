@@ -21,14 +21,6 @@ def location2db(fullpath, rootDir):
     regex = re.compile(config.musicPath)
     location = regex.sub('', fullpath)
 
-    '''
-    print "....................................... in location2db():"
-    print "REGEX to remove: " + config.musicPath
-    print "rootDir: " + rootDir
-    print "fullpath: " + fullpath
-    print "location: " + location
-    '''
-
     return location
 
 def getList(table):
@@ -137,7 +129,7 @@ def copyExactTree(source, target, spoolDir, noSpool=0):
     If newRoot/file already exists, it will be skipped, otherwise copied.
     Intermediate directories will be created.
     '''
-    
+
     newFile = target + source
     if noSpool == 1:
         newFile = removePathComponent(newFile, spoolDir)
