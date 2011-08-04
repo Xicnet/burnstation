@@ -7,7 +7,7 @@ Standards-Version: 3.6.1
 
 Package: burnstation-client-2.0
 Architecture: all
-Depends: python-mysqldb, python-pyogg | python-ogg, python-pyvorbis, python-mutagen, python-id3, python-dbus | python2.4-dbus, python-mutagen, cdrecord, mkisofs, vorbis-tools, sox, eject, mpg123, hal, pmount, cdda2wav, python-pygame, python-gst0.10, gstreamer0.10-alsa, gstreamer0.10-esd, gstreamer0.10-gnomevfs, gstreamer0.10-plugins-base, gstreamer0.10-plugins-base-apps, gstreamer0.10-plugins-good, gstreamer0.10-x
+Depends: python-mysqldb, python-pyogg | python-ogg, python-pyvorbis, python-mutagen, python-id3, python-dbus | python-dbus, python-mutagen, cdrecord, mkisofs, vorbis-tools, sox, eject, mpg123, hal, pmount, cdda2wav, python-pygame, python-gst0.10, gstreamer0.10-alsa, gstreamer0.10-esd, gstreamer0.10-gnomevfs, gstreamer0.10-plugins-base, gstreamer0.10-plugins-base-apps, gstreamer0.10-plugins-good, gstreamer0.10-x
 Description: free music distribution system
  Burn Station is a complete system for free music distribution.
  In the near future it will also feature video and text.

@@ -1,6 +1,14 @@
 
-INSTALLING 'burnstation 2.0'
+INSTALLING 'burnstation 2.1'
 ============================
+
+By hand:
+
+* Install dependancies:
+
+sudo apt-get install python-mysqldb python-ogg python-pyvorbis python-mutagen python-id3 python-dbus  python-dbus python-mutagen cdrecord mkisofs vorbis-tools sox eject mpg123 hal pmount cdda2wav python-pygame python-gst0.10 gstreamer0.10-alsa gstreamer0.10-esd gstreamer0.10-gnomevfs gstreamer0.10-plugins-base gstreamer0.10-plugins-base-apps gstreamer0.10-plugins-good gstreamer0.10-x
+
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 * Add the Debian/Ubuntu packages repository to your /etc/apt/sources.list:
 
