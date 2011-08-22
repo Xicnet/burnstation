@@ -18,7 +18,9 @@ import urllib
 import random
 
 from scroller import Scroller
+from textbox import Textbox
 from Browser import *
+from Infopanel import *
 from text import *
 
 pygame.display.init()
@@ -36,13 +38,14 @@ class MusicBrowser(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self, group)
 
         self.group = group
+        self.infotext = []
 
         self.isSelected = False
 
         self.speed      = 0
         self.keystart   = 0
 
-        self.image = pygame.Surface((400,600))
+        self.image = pygame.Surface((300,300))
         self.image = self.image.convert()
         #self.image.fill((0,100,100))
         self.rect = (0,250)
@@ -57,6 +60,7 @@ class MusicBrowser(pygame.sprite.Sprite):
         self.type = type
 
         self.BrowserInit()
+        self.InfopanelInit()
 
         self.la = Text("", 28, 570, 50, ORANGE)
         self.ar = Text("", 28, 570, 50, ORANGE)
@@ -78,11 +82,19 @@ class MusicBrowser(pygame.sprite.Sprite):
 
     #--------------------------------------------------------------------
     def BrowserInit(self):
-        self.browser = Scroller(self.group, Browser(self.level), self.image, 30, BLACK, 36, 15, 500,300)
+        self.browser = Scroller(self.group, Browser(self.level), self.image, 30, BLACK, 36, 15, 400,300)
         self.browser.level = self.browser.browser.level
 
-        self.browser.rect = (400,350)
+        self.browser.rect = (300,350)
         if self.isSelected: self.SetSelected()
+
+        #self.browser.Refresh()
+
+    #--------------------------------------------------------------------
+    def InfopanelInit(self):
+        self.infopanel = Textbox(self.group, self.infotext, self.image, 10, 30, WHITE, 36, 15, 400,300, False)
+
+        self.infopanel.rect = (700,350)
 
         #self.browser.Refresh()
 
@@ -97,6 +109,7 @@ class MusicBrowser(pygame.sprite.Sprite):
 
         self.level = self.type
         self.browser.BrowserInit(self.level)
+        self.infopanel.BrowserInit([])
         self.browser.level = self.type
         self.browser.browser.level = self.type
 
@@ -109,6 +122,8 @@ class MusicBrowser(pygame.sprite.Sprite):
     def Refresh(self):
         self.list = self.browser.list
         self.browser.Refresh()
+        self.infopanel.BrowserInit([{'name':'otro'}])
+        self.infopanel.Refresh()
         self.mustRender = True
 
     #--------------------------------------------------------------------
@@ -153,6 +168,9 @@ class MusicBrowser(pygame.sprite.Sprite):
     #--------------------------------------------------------------------
     def update(self):
         if self.mustRender:
+            self.infopanel.SetText(self.browser.list[self.browser.selected]['info'])
+            self.infopanel.mustRender = True
+            self.infopanel.Refresh()
             self.render()
             self.mustRender = False
 
@@ -166,6 +184,7 @@ class MusicBrowser(pygame.sprite.Sprite):
 
         self.navigation()
         self.browser.update()
+        self.infopanel.update()
         self.showRelatedImage((60,100), self.image)
         #logger.debug5( "self.level: " + self.level)
 
@@ -252,6 +271,7 @@ class MusicBrowser(pygame.sprite.Sprite):
     #--------------------------------------------------------------------
     def loop(self):
         self.browser.loop()
+        self.infopanel.loop()
 
 
 #--------------------------------------------------------------------
