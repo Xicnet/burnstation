@@ -1,0 +1,36 @@
+#!/bin/bash
+#
+# burnstation-update_contents_db - download latest contents tables and update local database
+#
+# Change the configuration below to fit your needs
+# Not big deal, basically we read burnstation's central config. see CONFFILE below
+#
+# rama@burnstation.org
+
+CONFFILE=/etc/burnstation/burnstation2.conf
+
+DB=`grep "DB =" $CONFFILE | sed 's/DB = \(.*\)/\1/'`
+DBhost=`grep DBhost $CONFFILE | sed 's/DB.* = \(.*\)/\1/'`
+DBuser=`grep DBuser $CONFFILE | sed 's/DB.* = \(.*\)/\1/'`
+DBpass=`grep DBpass $CONFFILE | sed 's/DB.* = \(.*\)/\1/'`
+musicPath=`grep ^musicPath $CONFFILE | sed 's/^musicPath.* = \(.*\)/\1/'`
+
+MYSQL=/usr/bin/mysql
+ZCAT=/bin/zcat
+DUMPFILENAME="burnstation_contents.mysql.gz"
+DUMPFILE=$musicPath"burnstation_contents.mysql.gz"
+CONTENTSURL="http://db.burnstation.org/media/$DUMPFILENAME"
+WGET="/usr/bin/wget"
+WGET_ARGS="--continue --no-parent --no-host-directories"
+
+echo "* Deleting possible (old) contents tables from $DUMPFILE.. please wait"
+rm $DUMPFILE
+
+echo "* Downloading new contents tables from $CONTENTSURL.. please wait"
+$WGET $WGET_ARGS --directory-prefix=$musicPath $CONTENTSURL
+
+echo "* Importing dump of new contents tables into $DB @ $DBhost from $DUMPFILE .. please wait"
+$ZCAT $DUMPFILE | $MYSQL -h$DBhost -u$DBuser -p$DBpass $DB
+echo "* Import of new contents tables $TABLE finished !"
+echo ""
+

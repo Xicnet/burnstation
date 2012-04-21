@@ -1,0 +1,18 @@
+#!/bin/bash
+#
+# this script will convert ONLY the listed directories and set the LABEL tag to every file
+#
+
+# this is the path to the new un-tagged labels root dir 
+musicPath="/usr/local/media"
+
+#
+# NOTE 1: do not execute this script more than one time over the same file otherwise
+#         the files will have the tag more than once and it can be a problem
+#
+# NOTE 2: it takes a while per each directory, so just let it work without interrupting it
+#
+# NOTE 3: the following are just two examples, modify as appropriate to adapt to your case
+#
+
+cd $musicPath/some_label_name_here && find -type f -iname "*.ogg" -exec vorbiscomment -a -t "LABEL=The Label Name" \{\} \; && echo "[*] seems the label was tagged correctly!"

@@ -1,0 +1,41 @@
+#!/bin/bash
+#
+# burnstation-dumpdb - dump the database (just contents)
+#
+
+# This script will dump just the labels, artists, albums and tracks tables
+# (contents) in such a way that it'll remain compatible with older versions of MySQL.
+#
+# I'm using debian package for unstable version 4.1.15-1
+#
+# The trick I use is just get rid of the DEFAULT CHARSET declaration
+# as trying to use mysqldump argument --compatible=mysql40 for example
+# was removing any auto_increment fields from the DB, so it was unusable
+#
+# Change the configuration below to fit your needs
+# Not big deal, basically we read burnstation's central config. see CONFFILE below
+#
+# rama@burnstation.org
+
+CONFFILE=/etc/burnstation/burnstation2.conf
+
+DB=`grep "DB =" $CONFFILE | sed 's/^DB = \(.*\)/\1/'`
+DBhost=`grep ^DBhost $CONFFILE | sed 's/^DB.* = \(.*\)/\1/'`
+DBuser=`grep ^DBuser $CONFFILE | sed 's/^DB.* = \(.*\)/\1/'`
+DBpass=`grep ^DBpass $CONFFILE | sed 's/^DB.* = \(.*\)/\1/'`
+musicPath=`grep ^musicPath $CONFFILE | sed 's/^musicPath.* = \(.*\)/\1/'`
+
+DUMPFILE=$musicPath"burnstation_contents.mysql.gz"
+MYSQLDUMP=/usr/bin/mysqldump
+
+echo "* Removing possibly old dump $DUMPFILE"
+rm -f $DUMPFILE
+
+for TABLE in netjuke_labels netjuke_artists netjuke_albums netjuke_tracks
+do
+	echo "* Starting dump of table $TABLE from database $DB @ $DBhost in $DUMPFILE .. please wait"
+	$MYSQLDUMP -h$DBhost -u$DBuser -p$DBpass $DB $TABLE | sed 's/ DEFAULT CHARSET=latin1//g' | gzip >> $DUMPFILE
+done
+
+echo "* Finished dumping tables, check $DUMPFILE for errors"
+echo ""

@@ -1,0 +1,18 @@
+#!/usr/bin/python
+
+import sys, os, string, MySQLdb, getopt
+sys.path.append('/usr/share/burnstation-client-2.0')
+import LoadConfig
+config=LoadConfig.LoadConfig()
+
+sqldump = "/usr/share/doc/burnstation-server-2.0/burnstation-2.0.sql.gz"
+
+drop   = "mysqladmin -u%s -p%s -f drop %s" % (config.DBuser, config.DBpass, config.DB)
+os.system(drop)
+
+create = "mysqladmin -u%s -p%s -f create %s" % (config.DBuser, config.DBpass, config.DB)
+os.system(create)
+
+load   = "zcat %s | mysql -u%s -p%s %s" % (sqldump, config.DBuser, config.DBpass, config.DB)
+os.system(load)
+

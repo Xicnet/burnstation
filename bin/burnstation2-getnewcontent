@@ -1,0 +1,96 @@
+#!/bin/bash
+#
+# burnstation-getnewcontent - downloads and mirrors the contents (rich data)
+#
+# rama@burnstation.org
+#
+
+
+CONFFILE=/etc/burnstation/burnstation2.conf
+DEFAULT_MUSICPATH=`grep musicPath $CONFFILE | awk -F= '{print $2}' | sed 's/^ *//'`"music"
+
+FTPUSER="burncontent"
+FTPPASS="burncontent"
+FTPSERVER="http://netjuke.r23.cc/musiq/rama/burnstation/"
+#FTPSERVER=`wget -q http://burnstation.org/remoteconfig.txt -O /dev/stdout | grep media_server | awk -F= '{print $2}'`
+
+WGET="/usr/bin/wget"
+WGET_ARGS="--recursive --continue --no-parent --cut-dirs=3 --no-host-directories -A=.mp3,.ogg,.jpg,.JPG,.gif,.png,.txt"
+#WGET_ARGS=" --mirror"
+
+# proposed by kleper :
+#WGET_ARGS="-r -A=.mp3,.ogg,.jpg,.png,.txt -nc -np http://netjuke.r23.cc/musiq/rama/burnstation/
+
+
+####################################################################
+# functions
+####################################################################
+
+confirm()
+{
+	echo "* Now we will download the contents which are approximately 12GB"
+	echo ""
+	echo "  If for some reason you have to stop this download, or the network"
+	echo "  stops working, you can just execute this script (burnstation2-getnewcontent)"
+	echo "  again, and it will continue since the point it stopped"
+	echo ""
+	echo -n "Press any key to continue.."
+	read something
+	echo ""
+	echo "* Starting download in 5 seconds.. press CTRL+C to stop"
+	echo -n " 4.."
+	sleep 1
+	echo -n " 3.."
+	sleep 1
+	echo -n " 2.."
+	sleep 1
+	echo -n " 1.."
+	sleep 1
+	echo " 0.. NOW!"
+	echo ""
+
+	getContent
+}
+
+askPath()
+{
+	confirm=""
+	
+	echo ""
+	echo "------------------------------------------------------------------------------"
+	echo "* Tell me the path where you want to download the New Burn Station contents."
+	echo ""
+	echo "  If you press ENTER I will use the one detected on the configuration file"
+	echo -n "  ..you can change it later [ $DEFAULT_MUSICPATH ] : "
+	read MUSICPATH
+	
+	if [ ! "$MUSICPATH" ]
+	then
+		MUSICPATH=$DEFAULT_MUSICPATH
+	fi
+	
+	echo ""
+	echo "- thanks, using $MUSICPATH to download the burnstation contents.."
+	echo ""
+	
+	confirm
+}
+
+validateMusicPath()
+{
+	echo ""
+	echo "* Detected musicPath from your $CONFFILE: $DEFAULT_MUSICPATH"
+	askPath
+}
+
+getContent()
+{
+	echo "* Cleaning up .listing files"
+	find $MUSICPATH -type f -iname ".listing" -exec rm \{\} \;
+	echo "* Getting contents"
+	echo ""
+	$WGET $WGET_ARGS --directory-prefix=$MUSICPATH $FTPSERVER
+}
+
+
+validateMusicPath

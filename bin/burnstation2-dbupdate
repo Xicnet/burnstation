@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+
+import sys, os, string, MySQLdb, getopt
+sys.path.append('/usr/share/burnstation-client-2.0')
+import LoadConfig
+config=LoadConfig.LoadConfig()
+db = MySQLdb.connect(host=config.DBhost, user=config.DBuser, passwd=config.DBpass, db=config.DB)
+
+def main():
+    try:
+        print "\n* Adding 'status' field to netjuke_plists table"
+        sql = "ALTER TABLE `netjuke_plists` ADD `status` TINYINT NOT NULL"
+        cursor = db.cursor()
+        cursor.execute(sql)
+	print "* Ok, Done!\n"
+    #except getopt.GetoptError:
+    except MySQLdb.OperationalError, (ErrorNumber, ErrorMessage):
+        #print "* !! Error: (%s) %s\n" % (ErrorNumber, ErrorMessage)
+	if ErrorMessage == "Duplicate column name 'status'":
+	    print "* The status field already exists on your database, not adding it again\n"
+
+
+if __name__ == "__main__":
+    main()
+
