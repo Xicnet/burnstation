@@ -15,7 +15,7 @@ UPGRADING FROM 'burnstation-client' PRIOR TO 2.0 (normally 1.2)
 * SVN and the debian package directory names.
 *
 * Therefore /usr/share/burnstation-client will be the old version,
-* while /usr/share/burnstation-client-2.0 will be the new one.
+* while /usr/share/burnstation will be the new one.
 *
 * Same thing for /SVN/burnstation/burnstation-client and
 * /SVN/burnstation/burnstation-client-2.0
@@ -33,7 +33,7 @@ UPGRADING FROM 'burnstation-client' PRIOR TO 2.0 (normally 1.2)
   A. Add the following entries directly below the [paths] section:
 
 	# app's home
-	home = /usr/share/burnstation-client-2.0
+	home = /usr/share/burnstation
 	# app's logs dir
 	logs = /var/log/burnstation
 
@@ -42,7 +42,7 @@ UPGRADING FROM 'burnstation-client' PRIOR TO 2.0 (normally 1.2)
 
 	[infotrack]
 	# info track settings
-	data = /usr/share/burnstation-client-2.0
+	data = /usr/share/burnstation
 
   C. Add the following entry at the bottom of [extra] section:
 

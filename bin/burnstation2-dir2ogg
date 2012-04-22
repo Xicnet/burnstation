@@ -22,7 +22,7 @@ import string
 import re
 from fnmatch import filter
 from getopt import gnu_getopt, GetoptError
-sys.path.append('/usr/share/burnstation-client-2.0')
+sys.path.append('/usr/share/burnstation')
 import mp3info
 import mp3info2
 

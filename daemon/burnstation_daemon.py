@@ -89,7 +89,7 @@ class TCPRequestHandler(SocketServer.BaseRequestHandler ):
                         #logger.debug(tracks)
 
                         # FIXME : ugly hardcode
-                        home = "/usr/share/burnstation-client-2.0"
+                        home = "/usr/share/burnstation"
                         cmd = home + '/burn.py'
                         args = [cmd, mode]
 

@@ -2,7 +2,7 @@
 
 import sys, os, string, MySQLdb, getopt, shutil
 from string import lower
-sys.path.append('/usr/share/burnstation-client-2.0')
+sys.path.append('/usr/share/burnstation')
 import LoadConfig
 config=LoadConfig.LoadConfig()
 db = MySQLdb.connect(host=config.DBhost, user=config.DBuser, passwd=config.DBpass, db=config.DB)
