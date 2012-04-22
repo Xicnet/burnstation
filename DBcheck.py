@@ -119,7 +119,7 @@ def DB_admin_create(DBadmin_user, DBadmin_pass):
 
 #--------------------------------------------------------------------
 def DB_autoimport():
-    DBfile = '/usr/share/doc/burnstation-server-2.0/burnstation-2.0.sql.gz'
+    DBfile = '/usr/share/burnstation/db/burnstation-2.0.sql.gz'
 
     """
     cmd = 'mysqladmin -u%s create %s' % (config.DBuser, config.DB)

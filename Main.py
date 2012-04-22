@@ -43,7 +43,7 @@ from MusicBrowser import MusicBrowser
 from button import Button
 
 """Start burnstation daemon"""
-d = "/SVN/burnstation-client-2.1/daemon"
+d = "/usr/share/burnstation/daemon"
 sys.path.append(d)
 cmd = d+'/burnstation_daemon.py'
 args = [cmd, 'start']
