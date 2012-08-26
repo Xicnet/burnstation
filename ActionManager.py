@@ -240,11 +240,13 @@ class KeyboardController:
                         elif event.key == 49: # 1 = burn audio
                             if sprites['burner'].sprite.visible:
                                 logger.info("Starting to burn AUDIO CD")
-                                action = 'BURN_AUDIO'
+                                #action = 'BURN_AUDIO'
+                                action = 'BURN_USB'
                         elif event.key == 50: # 2 = burn data
                             if sprites['burner'].sprite.visible:
                                 logger.info("Starting to burn DATA CD")
-                                action = 'BURN_DATA'
+                                #action = 'BURN_DATA'
+                                action = 'BURN_USB'
                         elif event.key == 51: # 3 = copy to USB
                             if sprites['burner'].sprite.visible:
                                 logger.info("Starting to burn DATA to USB")

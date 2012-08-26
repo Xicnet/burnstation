@@ -142,11 +142,11 @@ class Burner(pygame.sprite.Sprite):
     #--------------------------------------------------------------------
     def ShowHelp(self):
         """show burning help"""
-        t = Text("Choose burning mode", 24, 500, 35, ORANGE)
+        t = Text("Plug your pendrive", 24, 500, 35, ORANGE)
         burninfo = t.Show()
         self.image.blit(burninfo, (0, 30))
 
-        t = Text("<-- Options ", 24, 500, 35, ORANGE)
+        t = Text("Press 1 to start downloading ", 24, 500, 35, ORANGE)
         burninfo = t.Show()
         self.image.blit(burninfo, (0, 60))
 
