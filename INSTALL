@@ -1,12 +1,12 @@
 
   ADD SOURCES
-.................................
+....................................................................
 
 deb http://ftp.ccc.uba.ar/pub/linux/debian/debian/ squeeze main contrib non-free
 
 
   INSTALL DEPENDANCIES
-.................................
+....................................................................
 
 sudo aptitude install python-mysqldb python-ogg python-pyvorbis python-mutagen python-id3 python-dbus  python-dbus python-mutagen wodim genisoimage vorbis-tools sox eject mpg123 hal pmount python-pygame python-gst0.10 gstreamer0.10-alsa gstreamer0.10-plugins-base gstreamer0.10-plugins-base-apps gstreamer0.10-plugins-good gstreamer0.10-x mysql-server python-gtk2
 
@@ -21,13 +21,23 @@ sudo cp conf/burnstation2.conf /etc/burnstation/
 chmod +x /usr/share/burnstation/bin/burnstation2
 
   GAMEPAD SETTING
-.................................
+....................................................................
 
 Define your gamepad in /etc/burnstation/burnstation2.conf
 
   CONFIGURE AUTOSTART
-.................................
+....................................................................
 
 mkdir ~/.icewm
 echo "/usr/local/bin/burnstation2 loop &" > ~/.icewm/startup
 chmod +x ~/.icewm/startup
+
+
+  DISABLE AUTOMATIC USB DEVICE MANAGEMENT
+....................................................................
+
+Check /etc/fstab and comment out (disable) USB handling.
+The config line might look similar to the following:
+
+#/dev/sdb1       /media/usb0     auto    rw,user,noauto  0       0
+
